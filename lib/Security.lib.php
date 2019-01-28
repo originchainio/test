@@ -1,5 +1,5 @@
 <?php
-// version: 20190101 test
+// version: 20190128 test
 class Security{
 	private static $_instance = null;
 	function __construct(){

@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190126 test
+// version: 20190128 test
 class Blockinc extends base{
     private static $_instance = null;
     function __construct(){
@@ -278,6 +278,9 @@ class Blockinc extends base{
 
     // returns the previous block
     public function prev($height = 0){
+        if ($height=='') {
+            $height = 0;
+        }
         $height=intval($height);
         $sql=OriginSql::getInstance();
 
@@ -603,6 +606,9 @@ class Blockinc extends base{
 
     // delete last X blocks
     public function pop($no = 1){
+        if ($no=='') {
+            $no = 1;
+        }
         $current = $this->current();
         if ($current['height']<2) {
             return false;

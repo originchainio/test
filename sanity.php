@@ -1,5 +1,5 @@
 <?php
-// version: 20190115 test
+// version: 20190128 test
 include __DIR__.'/class/base.php';
 include __DIR__.'/include/account.inc.php';
 include __DIR__.'/include/blacklist.inc.php';
@@ -12,7 +12,7 @@ include __DIR__.'/include/transaction.inc.php';
 // include __DIR__.'/include/propagate.inc.php';
 include __DIR__.'/class/MainSQLpdo.php';
 include __DIR__.'/lib/OriginSql.lib.php';
-// include __DIR__.'/lib/Threads.lib.php';
+// include __DIR__.'/lib/PostThreads.lib.php';
 include __DIR__.'/lib/Security.lib.php';
 include __DIR__.'/function/function.php';
 include __DIR__.'/function/core.php';
@@ -588,19 +588,19 @@ if ($q=='force') {
 	if (isset($argv[2])) {
 		$from_host=trim($argv[2]);
 	}else{
-		$from_host='';
+		exit;
 	}
 	$sanity->Microrectification($from_host);
 }elseif($q=='Microsynchronization'){
 	if (isset($argv[2])) {
 		$from_host=trim($argv[2]);
 	}else{
-		$from_host='';
+		exit;
 	}
 	if (isset($argv[3])) {
 		$end_height=trim($argv[3]);
 	}else{
-		$end_height='';
+		exit;
 	}	
 	$sanity->Microsynchronization($from_host,$end_height);
 }

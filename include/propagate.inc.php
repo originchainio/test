@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190110 test
+// version: 20190128 test
 class Propagateinc extends base{
 	private static $_instance = null;
 	function __construct(){
@@ -37,6 +37,15 @@ class Propagateinc extends base{
     }
 
     public function block($id='current',$to_hostname='all',$linear=true){
+        if ($id=='') {
+            $id='current';
+        }
+        if ($to_hostname=='') {
+            $to_hostname='all';
+        }
+        if ($linear=='') {
+            $linear=true;
+        }
     	$sql=OriginSql::getInstance();
     	$r=[];
     	if ($to_hostname=='all' or $to_hostname=='') {
@@ -67,7 +76,7 @@ class Propagateinc extends base{
 		    if ($this->config['local_node']==false) {
 		        $data['from_host']=$config['hostname'];
 		    }
-		    $t[$key]=new threads($value['hostname']."/peer.php?q=submitBlock",json_encode($data));
+		    $t[$key]=new postthreads($value['hostname']."/peer.php?q=submitBlock",json_encode($data));
 		    $t[$key]->start();
     	}
     	//
@@ -96,7 +105,7 @@ class Propagateinc extends base{
 
 	    foreach ($r as $key => $value) {
 	    	echo "Transaction sent to ".$value['hostname']."\n";
-		    $t[$key]=new threads($value['hostname']."/peer.php?q=submitTransaction",json_encode($data));
+		    $t[$key]=new postthreads($value['hostname']."/peer.php?q=submitTransaction",json_encode($data));
 		    $t[$key]->start();
 	    }
     }

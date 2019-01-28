@@ -1,5 +1,5 @@
 <?php
-// version: 20181220 test
+// version: 20190128 test
 function echo_array($a) { echo "<pre>"; print_r($a); echo "</pre>"; }
 //preg
 function san($a, $b = ""){
@@ -20,6 +20,12 @@ function san_num_ip($a){
 }
 // 检查地址的有效性。目前，长度为>=70和<=128
 function valid_len($str,$minlen=70,$maxlen=128){
+    if ($minlen=='') {
+        $minlen=70;
+    }
+    if ($maxlen=='') {
+        $maxlen=128;
+    }
     if (strlen($str) < $minlen || strlen($str) > $maxlen) {
         return false;
     }else{

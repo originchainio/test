@@ -1,5 +1,5 @@
 <?php
-// version: 20190115 test
+// version: 20190128 test
 class OriginSql{
 	private static $_instance = null;
 	private static $_connect = null;
@@ -127,6 +127,12 @@ class OriginSql{
         $db->commit();
     }
     public function lock_tables($tables='blocks,accounts,transactions,mempool,masternode,peers,config',$model='WRITE'){
+    	if ($tables=='') {
+    		$tables='blocks,accounts,transactions,mempool,masternode,peers,config';
+    	}
+    	if ($model=='') {
+    		$model='WRITE';
+    	}
     	$tables_str = explode(',', $tables);
     	$set='';
     	foreach ($tables_str as $value) {
@@ -210,6 +216,15 @@ class OriginSql{
 	// 'fields' => '*',
 	// 'limit' => 1,  // mode=0时有效 0=返回所有 其余数字按照规格
 	public function select($table,$fields='*',$mode=1,$sqlwhere=array(),$orderby='',$limit=1){
+		if ($fields=='') {
+			$fields='*';
+		}
+		if ($mode=='') {
+			$mode=1;
+		}
+		if ($limit=='') {
+			$limit=1;
+		}
 		$table=$this->rename_tables($table);
 		if (!isset(self::$initt[$table])) {
 			return false;

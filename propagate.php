@@ -1,5 +1,5 @@
 <?php
-// version: 20190115 test
+// version: 20190128 test
 include __DIR__.'/class/base.php';
 include __DIR__.'/include/account.inc.php';
 include __DIR__.'/include/blacklist.inc.php';
@@ -12,7 +12,7 @@ include __DIR__.'/include/transaction.inc.php';
 // include __DIR__.'/include/propagate.inc.php';
 include __DIR__.'/class/MainSQLpdo.php';
 include __DIR__.'/lib/OriginSql.lib.php';
-// include __DIR__.'/lib/Threads.lib.php';
+// include __DIR__.'/lib/PostThreads.lib.php';
 include __DIR__.'/lib/Security.lib.php';
 include __DIR__.'/function/function.php';
 include __DIR__.'/function/core.php';
@@ -30,6 +30,15 @@ class Propagate extends base{
     }
 
     public function block($id='current',$to_hostname='all',$linear='true'){
+    	if ($id=='') {
+    		$id='current';
+    	}
+    	if ($to_hostname=='') {
+    		$to_hostname='all';
+    	}
+    	if ($linear=='') {
+    		$linear='true';
+    	}
     	$sql=OriginSql::getInstance();
     	$r=[];
     	if ($to_hostname=='all' or $to_hostname=='') {
@@ -47,6 +56,7 @@ class Propagate extends base{
     	}
     	//id
     	$block=Blockinc::getInstance();
+
     	if ($id=='current') {
     		$current = $block->current();
     		$data = $block->export_for_other_peers($current['id']);
@@ -54,7 +64,7 @@ class Propagate extends base{
     		$data = $block->export_for_other_peers($id);
     	}
     	if (!$data) {	
-    		//echo "Invalid Block data";	
+    		// echo "Invalid Block data";	
     		exit;	
     	}
     	//send
@@ -68,7 +78,7 @@ class Propagate extends base{
 		    $this->peer_post($value['hostname']."/peer.php?q=submitBlock", json_encode($data));
     	}
     	//
-
+    	return true;
     }
 
     public function transaction($mem_id){
@@ -92,9 +102,10 @@ class Propagate extends base{
     	$r=$sql->select('peer','hostname',0,array("blacklisted<".time()),$orderby,$limit);
 
 	    foreach ($r as $key => $value) {
-	    	echo "Transaction sent to ".$value['hostname']."\n";
+	    	//echo "Transaction sent to ".$value['hostname']."\n";
 	    	$this->peer_post($value['hostname']."/peer.php?q=submitTransaction", json_encode($data));
 	    }
+	    return true;
     }
 	private function peer_post($url, $json_post_data, $timeout = 60){
 	        $postdata = http_build_query(
@@ -129,9 +140,12 @@ class Propagate extends base{
 
 
 }
-$cmd = trim($argv[1]);
+if (!isset($argv[1])) {
+	exit;
+}
+$q = trim($argv[1]);
 $Propagate=new Propagate;
-switch ($cmd) {
+switch ($q) {
 	case 'block':
 		if (isset($argv[2])) {
 			$id=$argv[2];
@@ -148,16 +162,17 @@ switch ($cmd) {
 		}else{
 			$linear='';
 		}
-
 		$Propagate->block($id,$to_hostname,$linear);
+		echo 1;
 		break;
 	case 'transaction':
 		if (isset($argv[2])) {
 			$id=$argv[2];
 		}else{
-			$id='';
+			exit;
 		}
 		$Propagate->transaction($id);
+		echo 1;
 		break;
 	
 	default:

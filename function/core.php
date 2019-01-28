@@ -1,5 +1,5 @@
 <?php
-// version: 20181220 test
+// version: 20190128 test
 // converts PEM key to hex
 function pem2hex($data)
 {
@@ -15,6 +15,9 @@ function pem2hex($data)
 // converts hex key to PEM
 function hex2pem($data, $is_private_key = false)
 {
+    if ($is_private_key=='') {
+        $is_private_key=false;
+    }
     $data = hex2bin($data);
     $data = base64_encode($data);
     if ($is_private_key) {
@@ -38,6 +41,9 @@ function pem2coin($data)
 // converts the key in base58 to PEM
 function coin2pem($data, $is_private_key = false)
 {
+    if ($is_private_key=='') {
+        $is_private_key=false;
+    }
     $data = base58_decode($data);
     $data = base64_encode($data);
 

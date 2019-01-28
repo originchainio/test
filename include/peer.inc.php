@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190110 test
+// version: 20190128 test
 class Peerinc extends base{
     private static $_instance = null;
     function __construct(){
@@ -122,6 +122,9 @@ class Peerinc extends base{
     }
     //得到更多的reserve=0 blacklisted<time() 的 peer
     public function get_peer_max($max=10){
+        if ($max=='') {
+            $max=10;
+        }
         $sql=OriginSql::getInstance();
 
         $res=$sql->select('peer','*',0,array("reserve=0","blacklisted<".time()),'',$max);
@@ -195,6 +198,9 @@ class Peerinc extends base{
 
 
     public function ping($hostname,$timeout=5){
+        if ($timeout=='') {
+            $timeout=5;
+        }
         $response = $this->peer_post($hostname.'/peer.php?q=ping', [], $timeout);
         if ($response == false) {
             return false;
@@ -231,6 +237,9 @@ class Peerinc extends base{
         }
     }
     public function peer_post($url, $data = [], $timeout = 60){
+        if ($timeout=='') {
+            $timeout=60;
+        }
         $postdata = http_build_query(
             [
                 'data' => json_encode($data),

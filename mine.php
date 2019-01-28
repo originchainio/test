@@ -1,6 +1,6 @@
 <?php
 
-// version: 20190125 test
+// version: 20190128 test
 include __DIR__.'/class/base.php';
 include __DIR__.'/include/account.inc.php';
 include __DIR__.'/include/blacklist.inc.php';
@@ -13,7 +13,7 @@ include __DIR__.'/include/transaction.inc.php';
 // include __DIR__.'/include/propagate.inc.php';
 include __DIR__.'/class/MainSQLpdo.php';
 include __DIR__.'/lib/OriginSql.lib.php';
-// include __DIR__.'/lib/Threads.lib.php';
+// include __DIR__.'/lib/PostThreads.lib.php';
 include __DIR__.'/lib/Security.lib.php';
 include __DIR__.'/function/function.php';
 include __DIR__.'/function/core.php';
@@ -197,18 +197,29 @@ class mine extends base{
 }
 
 set_time_limit(360);
+if (!isset($_GET['q'])) {
+    exit;
+}
 $q = $_GET['q'];
 $mine=new mine();
 
 if ($q == "info") {
     $mine->info();
 } elseif ($q == "submitNonce") {
+    if (!isset($_POST['nonce']) or !isset($_POST['argon']) or !isset($_POST['public_key']) or !isset($_POST['private_key'])) {
+        exit;
+    }
     $nonce = $_POST['nonce'];
     $argon = $_POST['argon'];
     $public_key = $_POST['public_key'];
     $private_key = $_POST['private_key'];
     $mine->submitNonce($nonce,$argon,$public_key,$private_key);
 } elseif ($q == "submitBlock") {
+    if (!isset($_POST['nonce']) or !isset($_POST['argon']) or !isset($_POST['public_key']) or !isset($_POST['private_key'])
+        or !isset($_POST['reward_signature']) or !isset($_POST['data']) or !isset($_POST['date'])
+    ) {
+        exit;
+    }
     $nonce = $_POST['nonce'];
     $argon = $_POST['argon'];
     $public_key = $_POST['public_key'];

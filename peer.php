@@ -1,5 +1,5 @@
 <?php
-// version: 20190126 test
+// version: 20190128 test
 include __DIR__.'/class/base.php';
 include __DIR__.'/include/account.inc.php';
 include __DIR__.'/include/blacklist.inc.php';
@@ -12,7 +12,7 @@ include __DIR__.'/include/transaction.inc.php';
 // include __DIR__.'/include/propagate.inc.php';
 include __DIR__.'/class/MainSQLpdo.php';
 include __DIR__.'/lib/OriginSql.lib.php';
-// include __DIR__.'/lib/Threads.lib.php';
+// include __DIR__.'/lib/PostThreads.lib.php';
 include __DIR__.'/lib/Security.lib.php';
 include __DIR__.'/function/function.php';
 include __DIR__.'/function/core.php';
@@ -199,14 +199,9 @@ class Peer extends base{
                 $Security=Security::getInstance();
                 $cmd=$Security->cmd('php sanity.php',['Microsynchronization',$from_host,$data['height']]);
                 $this->log($cmd);
-                if (system($cmd)) {
-                    $this->log('CMD true');
-                }else{
-                    $this->log('CMD false');
-                }
-                
-                $this->log('current block-too-old Microsynchronization',1);
-                $this->echo_display_json(false,'current block-too-old Microsynchronization');
+                system($cmd);
+
+                $this->echo_display_json(true,'current block-old Microsynchronization');
                 // exit;
             }
         }
@@ -317,7 +312,7 @@ class Peer extends base{
 }
 
 
-if (!isset($_POST['coin'])) {
+if (!isset($_POST['coin']) or !isset($_GET['q'])) {
     exit;
 }
 $peer=new Peer($_POST['coin']);

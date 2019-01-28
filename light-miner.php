@@ -1,10 +1,8 @@
 <?php
-
 /*
 fork https://github.com/arionum/miner
 revise:The algorithmic part makes it applicable to origin
 */
-
 // version: 20190115 test
 class Miner{
     public const VERSION = 'v0.1';
@@ -43,8 +41,8 @@ class Miner{
         $this->checkDependencies();
         if (empty($type) || empty($public_key) || empty($node) || ($type == self::MODE_SOLO && empty($private_key))) {
             echo "Usage:\n\n";
-			echo "For Solo mining: ./miner solo <node> <public_key> <private_key>\n";
-			echo "For Pool mining: ./miner pool <pool-address> <your-address>\n\n";
+            echo "For Solo mining: ./miner solo <node> <public_key> <private_key>\n";
+            echo "For Pool mining: ./miner pool <pool-address> <your-address>\n\n";
             exit;
         }
         if ($type == self::MODE_POOL) {
@@ -94,9 +92,7 @@ class Miner{
             $extra = "&worker=".$this->worker."&address=".$this->privateKey."&hashrate=".$this->speed;
         }
         $res = file_get_contents($this->node."/mine.php?q=info".$extra);
-
         $info = json_decode($res, true);
-
         if ($info['status'] != self::NODE_STATUS_OK) {
             return false;
         }
@@ -140,7 +136,6 @@ class Miner{
         $context = stream_context_create($opts);
         $res = file_get_contents($this->node."/mine.php?q=submitNonce", false, $context);
         $data = json_decode($res, true);
-
         //echo_array($res);
         if ($data['status'] == self::NODE_STATUS_OK) {
             echo "\n--> Nonce confirmed.\n";
@@ -182,7 +177,6 @@ class Miner{
                 );
             $hash = $base.$argon;
             $hash = hash("sha512", $hash, true);
-
             $hash = hash("sha512", $hash);
             $m = str_split($hash, 2);
             $duration = hexdec($m[10]).hexdec($m[15]).hexdec($m[20]).hexdec($m[23]).
@@ -190,14 +184,11 @@ class Miner{
             $duration = ltrim($duration, '0');
             $result = gmp_div($duration, $this->difficulty);
             if ($result > 0 && $result <= $this->limit) {
-
                 if (!password_verify($base, $argon)) {
                    echo "verify failed"."\n";
                 }else{
                     echo "verify success"."\n";
                 }
-
-
                 $argon=substr($argon, 29);
                 $confirmed = $this->submit($nonce, $argon);
                 //echo "\nARGON: $argon\n";
@@ -302,7 +293,6 @@ class Miner{
         echo "============================\n\n";
     }
 }
-
 error_reporting(0);
 //ini_set("memory_limit", "5G");
 $type = trim($argv[1]);
@@ -311,19 +301,5 @@ $public_key = trim($argv[3]);
 $private_key = trim($argv[4]);
 $mine=new Miner($type, $node, $public_key, $private_key);
 $mine->run();
-
-
-
-
 function echo_array($a) { echo "<pre>"; print_r($a); echo "</pre>"; }
-
-
-
-
-
-
-
-
-
-
 ?>
