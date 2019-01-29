@@ -38,7 +38,10 @@ make clean
 make && make install
 
 # environment variable  /etc/profile
-export PATH=$PATH:/usr/local/php/bin
+echo 'PATH=$PATH:/usr/local/php/bin
+export PATH' >> /etc/profile
+source /etc/profile
+
 mkdir /etc/php/
 mkdir /etc/php/cgi/
 # mkdir /etc/php/cli/
