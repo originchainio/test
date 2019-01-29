@@ -58,6 +58,7 @@ git clone https://github.com/originchainio/test.git originnode
 chown -R originnode:website /var/www/originnode
 chmod -R 0755 /var/www/originnode
 cd /var/www/originnode
+mkdir tmp
 chmod 777 tmp
 
 # fpm for node
