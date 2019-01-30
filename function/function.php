@@ -20,10 +20,10 @@ function san_num_ip($a){
 }
 // 检查地址的有效性。目前，长度为>=70和<=128
 function valid_len($str,$minlen=70,$maxlen=128){
-    if ($minlen=='') {
+    if ($minlen==='') {
         $minlen=70;
     }
-    if ($maxlen=='') {
+    if ($maxlen==='') {
         $maxlen=128;
     }
     if (strlen($str) < $minlen || strlen($str) > $maxlen) {

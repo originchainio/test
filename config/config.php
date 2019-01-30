@@ -7,6 +7,10 @@ return array_merge(array(
 */
 	'init'=>true,
 
+	// PHP PATH
+	// If you configure PHP environment variables and allow them to be invoked globally directly by CGI mode, you can leave them blank. If it is a quick installation script install, please keep it unchanged
+	'php_path'=>'/usr/local/php/bin/',
+
 	// Coin name
 	'coin_name'=>'origin',
 
