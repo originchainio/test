@@ -135,6 +135,10 @@ class Miner{
         ];
         $context = stream_context_create($opts);
         $res = file_get_contents($this->node."/mine.php?q=submitNonce", false, $context);
+        if ($res==false) {
+            echo "--> Time out.\n\n";
+            return false;
+        }
         $data = json_decode($res, true);
         //echo_array($res);
         if ($data['status'] == self::NODE_STATUS_OK) {

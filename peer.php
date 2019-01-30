@@ -106,7 +106,7 @@ class Peer extends base{
         //广播给其他peer 前边check已经检测过mem和trx里边没有出现 是新的mem
         $id=escapeshellarg($id);
         $Security=Security::getInstance();
-        $cmd=$Security->cmd('php propagate.php',['transaction',$id]);
+        $cmd=$Security->cmd($this->config['php_path'].'php propagate.php',['transaction',$id]);
         system($cmd);
 
 
@@ -155,7 +155,7 @@ class Peer extends base{
                 if ($from_host!=='') {
 
                     $Security=Security::getInstance();
-                    $cmd=$Security->cmd('php sanity.php',['Microrectification',$from_host]);
+                    $cmd=$Security->cmd($this->config['php_path'].'php sanity.php',['Microrectification',$from_host]);
                     system($cmd);
                     $this->log('microsanity',1);
                     $this->echo_display_json(true,'microsanity');
@@ -176,7 +176,7 @@ class Peer extends base{
                 $from_host = san_host($from_host);
 
                 $Security=Security::getInstance();
-                $cmd=$Security->cmd('php propagate.php',['block','current',$from_host]);
+                $cmd=$Security->cmd($this->config['php_path'].'php propagate.php',['block','current',$from_host]);
                 system($cmd);
 
             }
@@ -197,7 +197,7 @@ class Peer extends base{
             if ($from_host!='') {
  
                 $Security=Security::getInstance();
-                $cmd=$Security->cmd('php sanity.php',['Microsynchronization',$from_host,$data['height']]);
+                $cmd=$Security->cmd($this->config['php_path'].'php sanity.php',['Microsynchronization',$from_host,$data['height']]);
                 $this->log($cmd);
                 system($cmd);
 
@@ -249,7 +249,7 @@ class Peer extends base{
         // send it to all our peers
         if ($this->config['local_node']==false) {
             $Security=Security::getInstance();
-            $cmd=$Security->cmd('php propagate.php',['block',$data['id'],'all','true']);
+            $cmd=$Security->cmd($this->config['php_path'].'php propagate.php',['block',$data['id'],'all','true']);
             system($cmd);
         }
         $this->log('add block-ok',1);

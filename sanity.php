@@ -80,6 +80,7 @@ class sanity extends base{
 		if ($totla_peer_count < $this->config['db_max_peers']) {
 			$needpeernum=$this->config['db_max_peers']-$totla_peer_count;
 			$r=$peer->get_peer_max($this->config['max_peer']);
+
 			$peer->get_more_peer($r,$needpeernum);
 		}
 
@@ -195,7 +196,7 @@ class sanity extends base{
 		$this->log('rebroadcast locals mempool');
 		foreach ($res as $key => $value) {
 			$sql->update('mem',array('height'=>$current['height']),array("id='".$value['id']."'"));
-	        $cmd=$Security->cmd('php propagate.php',['transaction',$value['id']]);
+	        $cmd=$Security->cmd($this->config['php_path'].'php propagate.php',['transaction',$value['id']]);
 	        system($cmd);
 		}
 		//重播非本地事务
@@ -203,7 +204,7 @@ class sanity extends base{
 		$this->log('rebroadcast peer mempool');
 		foreach ($res as $key => $value) {
 			$sql->update('mem',array('height'=>$current['height']),array("id='".$value['id']."'"));
-	        $cmd=$Security->cmd('php propagate.php',['transaction',$value['id']]);
+	        $cmd=$Security->cmd($this->config['php_path'].'php propagate.php',['transaction',$value['id']]);
 	        system($cmd);
 		}
 

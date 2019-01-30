@@ -604,7 +604,7 @@ if ($q == "getAddress") {
         exit;
     }else{
         $Security=Security::getInstance();
-        $cmd=$Security->cmd('php propagate.php',['transaction',$hash]);
+        $cmd=$Security->cmd($config['php_path'].'php propagate.php',['transaction',$hash]);
         system($cmd);
         echo_display_json(true,$hash);
     }

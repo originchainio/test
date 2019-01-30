@@ -186,10 +186,10 @@ class Util extends base{
  *
  */
     public function blocks_id($start_height=1,$limit=1){
-        if ($start_height=='') {
+        if ($start_height==='') {
             $start_height=1;
         }
-        if ($limit=='') {
+        if ($limit==='') {
             $limit=1;
         }
         $height = intval($height);
@@ -585,7 +585,7 @@ class Util extends base{
 
     //$modify='check' 如果发现数据不对 自动进行update操作
     public function resync_accounts($modify='uncheck'){
-        if ($modify=='') {
+        if ($modify==='') {
             $modify='uncheck';
         }
         // resyncs the balance on all accounts
@@ -637,7 +637,7 @@ class Util extends base{
     }
 
     public function compare_blocks($hostname,$limit,$dump='dump'){
-        if ($dump=='') {
+        if ($dump==='') {
             $dump='dump';
         }
         $block=Blockinc::getInstance();

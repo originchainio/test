@@ -93,7 +93,7 @@ class mine extends base{
             $current = $block->current();
 
             $Security=Security::getInstance();
-            $cmd=$Security->cmd('php propagate.php',['block',$current['id']]);
+            $cmd=$Security->cmd($this->config['php_path'].'php propagate.php',['block',$current['id']]);
             system($cmd);
             $this->log('cmd:'.$cmd,1);
 
@@ -154,7 +154,7 @@ class mine extends base{
             $current = $block->current();
 
             $Security=Security::getInstance();
-            $cmd=$Security->cmd('php propagate.php',['block',$current['id']]);
+            $cmd=$Security->cmd($this->config['php_path'].'php propagate.php',['block',$current['id']]);
             system($cmd);
 
             $this->echo_display_json(true,'accepted');
