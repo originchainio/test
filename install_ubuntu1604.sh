@@ -1,4 +1,6 @@
 #bin/bash
+
+# version 1.05
 apt-get update
 # Installation package
 apt-get install build-essential bison re2c pkg-config -y
@@ -58,11 +60,13 @@ useradd -s /sbin/nologin -g website originnode
 mkdir /var/www
 cd /var/www
 git clone https://github.com/originchainio/test.git originnode
+mkdir tmp
+mkdir log
 chown -R originnode:website /var/www/originnode
 chmod -R 0755 /var/www/originnode
 cd /var/www/originnode
-mkdir tmp
 chmod 777 tmp
+chmod 777 log
 
 # fpm for node
 cp /usr/local/php/etc/php-fpm.d/www.conf.default /usr/local/php/etc/php-fpm.d/originnode.conf
@@ -84,7 +88,7 @@ ExecStart=/usr/local/bin/php-fpm start
 ExecReload=/usr/local/bin/php-fpm reload
 ExecStop=/usr/local/bin/php-fpm stop
 [Install]
-WantedBy=multi-user.target" >> /etc/systemd/system/php-fpm.service
+WantedBy=multi-user.target" > /etc/systemd/system/php-fpm.service
 systemctl enable php-fpm.service
 
 # install mysql
@@ -98,7 +102,7 @@ cd /etc/nginx/
 find -name 'nginx.conf' | xargs perl -pi -e 's|user www-data;|user originnode website;|g'
 # host
 cd /etc/nginx/sites-enabled/
-echo "server {
+echo 'server {
        listen 80;
        listen [::]:80;
        server_name example.com;
@@ -109,12 +113,11 @@ echo "server {
               try_files $uri $uri/ =404;
        }
        location ~ \.php$ {
+              include snippets/fastcgi-php.conf;
               fastcgi_pass 127.0.0.1:9000;
-              include fastcgi.conf;
-              # include snippets/fastcgi-php.conf;
-              # fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+              #fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
        }
-}" >> originnode
+}' > originnode
 # restart nginx
 service nginx restart
 service nginx reload
