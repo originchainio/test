@@ -23,15 +23,14 @@ return array_merge(array(
 	// Hosts that are allowed to mine and public api allow host on this node
 	'allow_host'=>array('127.0.0.1',
 						'localhost',
-						'::1',
-						'192.168.1.40'
+						'::1'
 						),
 
 
 	// The number of peers to send each new transaction to
-	'transaction_propagation_peers'=>5,  //广播非本地交易的peer数量
+	'transaction_propagation_peers'=>5,  //Number of peers broadcasting non-local transactions
 
-	'block_propagation_peers'=>5,		//转播块的peer数量
+	'block_propagation_peers'=>5,		//Number of peers broadcast
 
 	//
 	'local_node'=>true,
