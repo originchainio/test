@@ -50,7 +50,7 @@ class Peerinc extends base{
     public function update_peer_stuckfail($hostname,$stuckfail,$blacklisted=''){
         $sql=OriginSql::getInstance();
 
-        if ($blacklisted=='') {
+        if ($blacklisted==='') {
             $res=$sql->update('peer',array('stuckfail'=>$stuckfail),array("hostname='".$hostname."'"));
         }else{
             $res=$sql->update('peer',array('stuckfail'=>$stuckfail,'blacklisted'=>$blacklisted),array("hostname='".$hostname."'")); 
@@ -64,7 +64,6 @@ class Peerinc extends base{
     }
 
     public function get_more_peer($peer_list=array(),$maxpeer){
-
         $peer=0;
         foreach ($peer_list as $ve) {
             $url = $ve['hostname']."/peer.php?q=getPeers";
@@ -122,7 +121,7 @@ class Peerinc extends base{
     }
     //得到更多的reserve=0 blacklisted<time() 的 peer
     public function get_peer_max($max=10){
-        if ($max=='') {
+        if ($max==='') {
             $max=10;
         }
         $sql=OriginSql::getInstance();
@@ -198,7 +197,7 @@ class Peerinc extends base{
 
 
     public function ping($hostname,$timeout=5){
-        if ($timeout=='') {
+        if ($timeout==='') {
             $timeout=5;
         }
         $response = $this->peer_post($hostname.'/peer.php?q=ping', [], $timeout);
@@ -237,7 +236,7 @@ class Peerinc extends base{
         }
     }
     public function peer_post($url, $data = [], $timeout = 60){
-        if ($timeout=='') {
+        if ($timeout==='') {
             $timeout=60;
         }
         $postdata = http_build_query(
@@ -259,6 +258,9 @@ class Peerinc extends base{
 
         $context = stream_context_create($opts);
         $result = file_get_contents($url, false, $context);
+        if ($result==false) {
+            return false;
+        }
         $res = json_decode($result, true);
 
         // the function will return false if something goes wrong

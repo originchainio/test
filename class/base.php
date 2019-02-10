@@ -80,7 +80,7 @@ class base
     }
     public final function echo_display_json($status = true, $data)
     {
-        if ($status=='') {
+        if ($status==='') {
             $status=true;
         }
         if (headers_sent() == false) {
@@ -108,7 +108,7 @@ class base
     }
     public function log($data, $verbosity = 0)
     {
-        if ($verbosity=='') {
+        if ($verbosity==='') {
             $verbosity = 0;
         }
         if ($this->config['log_verbosity'] > $verbosity) {

@@ -37,13 +37,13 @@ class Propagateinc extends base{
     }
 
     public function block($id='current',$to_hostname='all',$linear=true){
-        if ($id=='') {
+        if ($id==='') {
             $id='current';
         }
-        if ($to_hostname=='') {
+        if ($to_hostname==='') {
             $to_hostname='all';
         }
-        if ($linear=='') {
+        if ($linear==='') {
             $linear=true;
         }
     	$sql=OriginSql::getInstance();

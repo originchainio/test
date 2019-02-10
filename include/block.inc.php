@@ -278,7 +278,7 @@ class Blockinc extends base{
 
     // returns the previous block
     public function prev($height = 0){
-        if ($height=='') {
+        if ($height==='') {
             $height = 0;
         }
         $height=intval($height);
@@ -606,7 +606,7 @@ class Blockinc extends base{
 
     // delete last X blocks
     public function pop($no = 1){
-        if ($no=='') {
+        if ($no==='') {
             $no = 1;
         }
         $current = $this->current();

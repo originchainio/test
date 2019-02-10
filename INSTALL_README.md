@@ -1,11 +1,12 @@
 ## Install for ubuntu16.04
 
-down install_ubuntu1604.sh
+download install_ubuntu1604.sh
 
+## Fast Installation Environment
 chmod +x install_ubuntu1604.sh
 ./install_ubuntu1604.sh
 
-##Import data structure
+## Import data structure
 
 //Enter the node directory
 cd /var/www/originnode
@@ -33,13 +34,15 @@ Route: /var/www/originnode
 
 
 ## If you don't use domain names, use IP as a node
-delete /etc/nginx/sites-enabled/originnode
-edit /etc/nginx/sites-enabled/default
+del originnode file:
+rm /etc/nginx/sites-enabled/originnode
+edit nginx default file:
+vim /etc/nginx/sites-enabled/default
 
-//Modify server_name to your domain name
+//Modify server_name to your ip
 And turn on PHP Be similar to:
 #######################################################
-	   server_name your ip;
+	server_name your_ip;
        root /var/www/originnode;
        index index.html index.htm index.php;
 	   ...

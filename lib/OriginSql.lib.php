@@ -127,10 +127,10 @@ class OriginSql{
         $db->commit();
     }
     public function lock_tables($tables='blocks,accounts,transactions,mempool,masternode,peers,config',$model='WRITE'){
-    	if ($tables=='') {
+    	if ($tables==='') {
     		$tables='blocks,accounts,transactions,mempool,masternode,peers,config';
     	}
-    	if ($model=='') {
+    	if ($model==='') {
     		$model='WRITE';
     	}
     	$tables_str = explode(',', $tables);
@@ -150,7 +150,7 @@ class OriginSql{
     	$this->exec('UNLOCK TABLES');
     }
 	private function rename_tables($table){
-		if ($table=='' or $table==NULL) {
+		if ($table==='' or $table===NULL) {
 			return 'XXX';
 		}
 		if (isset(self::$tb[$table])) {
@@ -216,13 +216,13 @@ class OriginSql{
 	// 'fields' => '*',
 	// 'limit' => 1,  // mode=0时有效 0=返回所有 其余数字按照规格
 	public function select($table,$fields='*',$mode=1,$sqlwhere=array(),$orderby='',$limit=1){
-		if ($fields=='') {
+		if ($fields==='') {
 			$fields='*';
 		}
-		if ($mode=='') {
+		if ($mode==='') {
 			$mode=1;
 		}
-		if ($limit=='') {
+		if ($limit==='') {
 			$limit=1;
 		}
 		$table=$this->rename_tables($table);

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>origin explorer block</title>
+<style type="text/css">
+table.gridtable {
+	font-family: verdana,arial,sans-serif;
+	font-size:11px;
+	color:#333333;
+	border-width: 1px;
+	border-color: #666666;
+	border-collapse: collapse;
+}
+table.gridtable th {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #dedede;
+}
+table.gridtable td {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #ffffff;
+}
+</style>
+
+</head>
+<body>
+	<h1>origin explorer block</h1>
+	<h5><a href="/explorer.php"><<</a></h5>
+<table class="gridtable">
+<tr><td>hash</td><td><?=$b['id']?></td></tr>
+<tr><td>height</td><td><?=$b['height']?></td></tr>
+<tr><td>date</td><td><?=$b['date']?>&nbsp;(<?=date("Y-m-d H:i",$b['date'])?>)</td></tr>
+<tr><td>gen_address</td><td><?=$b['generator']?></td></tr>
+<tr><td>nonce</td><td><?=$b['nonce']?></td></tr>
+<tr><td>signature</td><td><?=$b['signature']?></td></tr>
+<tr><td>difficulty</td><td><?=$b['difficulty']?></td></tr>
+<tr><td>argon</td><td><?=$b['argon']?></td></tr>
+<tr><td>trx_count</td><td><?=$b['transactions']?></td></tr>
+</table>
+
+	<table class="gridtable">
+		<tr>
+			<th>HASH</th>
+			<th>VERSION</th>
+			<th>VAL</th>
+			<th>FEE</th>
+			<th>TO ADDRESS</th>
+			<th>FROM ADDRESS</th>
+		</tr>
+<?php
+foreach ($trx_list as $value) {
+	echo '<tr>';
+	echo '<td><a href="/explorer.php?q=transaction&data='.$value['id'].'">'.$value['id'].'</a></td>';
+	echo '<td>';
+switch ($value['version']) {
+	case 0:
+		echo 'miner reward';
+		break;
+	case 1:
+		echo 'send address';
+		break;
+	case 2:
+		echo 'send alias';
+		break;
+	case 3:
+		echo 'add alias';
+		break;
+	case 4:
+		echo 'mn reward';
+		break;
+	case 5:
+		echo 'fee burning';
+		break;
+	case 100:
+		echo 'add mn';
+		break;
+	case 101:
+		echo 'stop mn';
+		break;
+	case 102:
+		echo 'start mn';
+		break;
+	case 103:
+		echo 'del mn';
+		break;
+	case 111:
+		echo 'update mn';
+		break;
+	default:
+		echo 'unknow';
+		break;
+}
+	echo '</td>';
+	echo '<td>'.number_format($value['val'], 8, ".", "").'</td>';
+	echo '<td>'.number_format($value['fee'], 8, ".", "").'</td>';
+	echo '<td><a href="/explorer.php?q=address&data='.$value['dst'].'">'.$value['dst'].'</a></td>';
+	echo '<td><a href="/explorer.php?q=address&data='.$value['from_address'].'">'.$value['from_address'].'</a></td>';
+	echo '</tr>';
+}
+?>
+
+</table>
+</body>
+</html>

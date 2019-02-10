@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>origin explorer transaction</title>
+<style type="text/css">
+table.gridtable {
+	font-family: verdana,arial,sans-serif;
+	font-size:11px;
+	color:#333333;
+	border-width: 1px;
+	border-color: #666666;
+	border-collapse: collapse;
+}
+table.gridtable th {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #dedede;
+}
+table.gridtable td {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #ffffff;
+}
+</style>
+
+</head>
+<body>
+	<h1>origin explorer transaction</h1>
+	<h5><a href="/explorer.php"><<</a></h5>
+<table class="gridtable">
+<tr><td>hash</td><td><?=$b['id']?></td></tr>
+<tr><td>height</td><td><?=$b['height']?></td></tr>
+<tr><td>dst</td><td><a href="/explorer.php?q=address&data=<?=$b['dst']?>"><?=$b['dst']?></a></td></tr>
+<tr><td>val</td><td><?=number_format($b['val'], 8, ".", "")?></td></tr>
+<tr><td>fee</td><td><?=number_format($b['fee'], 8, ".", "")?></td></tr>
+<tr><td>signature</td><td><?=$b['signature']?></td></tr>
+<tr><td>version</td><td>
+<?php
+switch ($b['version']) {
+	case 0:
+		echo 'miner reward';
+		break;
+	case 1:
+		echo 'send address';
+		break;
+	case 2:
+		echo 'send alias';
+		break;
+	case 3:
+		echo 'add alias';
+		break;
+	case 4:
+		echo 'mn reward';
+		break;
+	case 5:
+		echo 'fee burning';
+		break;
+	case 100:
+		echo 'add mn';
+		break;
+	case 101:
+		echo 'stop mn';
+		break;
+	case 102:
+		echo 'start mn';
+		break;
+	case 103:
+		echo 'del mn';
+		break;
+	case 111:
+		echo 'update mn';
+		break;
+	default:
+		echo 'unknow';
+		break;
+}
+?>
+</td></tr>
+<tr><td>message</td><td><?=escapeshellarg($b['message'])?></td></tr>
+<tr><td>date</td><td><?=$b['date']?></td></tr>
+<tr><td>from_address</td><td><a href="/explorer.php?q=address&data=<?=$b['from_address']?>"><?=$b['from_address']?></a></td></tr>
+<tr><td>block</td><td><a href="/explorer.php?q=block&data=<?=$b['block']?>"><?=$b['block']?></a></td></tr>
+</table>
+</body>
+</html>

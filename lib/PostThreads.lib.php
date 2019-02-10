@@ -17,7 +17,7 @@ class postthreads extends Thread{
 	}
 }
 function postT_peer_post($url, $json_post_data, $timeout = 60){
-        if ($timeout=='') {
+        if ($timeout==='') {
             $timeout = 60;
         }
         $postdata = http_build_query(
@@ -39,6 +39,9 @@ function postT_peer_post($url, $json_post_data, $timeout = 60){
 
         $context = stream_context_create($opts);
         $result = file_get_contents($url, false, $context);
+        if ($result==false) {
+            return false;
+        }
         $res = json_decode($result, true);
 
         // the function will return false if something goes wrong

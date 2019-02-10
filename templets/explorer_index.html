@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>origin explorer</title>
+<style type="text/css">
+table.gridtable {
+	font-family: verdana,arial,sans-serif;
+	font-size:11px;
+	color:#333333;
+	border-width: 1px;
+	border-color: #666666;
+	border-collapse: collapse;
+}
+table.gridtable th {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #dedede;
+}
+table.gridtable td {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #ffffff;
+}
+</style>
+
+</head>
+<body>
+	<h1>origin explorer</h1>
+	<table class="gridtable">
+		<tr>
+			<th>HEIGHT</th>
+			<th>HASH</th>
+			<th>DATE</th>
+			<th>GEN ADDRESS</th>
+			<th>TRX_COUNT</th>
+		</tr>
+<?php
+foreach ($b as $value) {
+	echo '<tr>';
+	echo '<td><a href="/explorer.php?q=block&data='.$value['id'].'">'.$value['height'].'</a></td>';
+	echo '<td><a href="/explorer.php?q=block&data='.$value['id'].'">'.$value['id'].'</a></td>';
+	echo '<td>'.date("Y-m-d H:i",$value['date']).'</td>';
+	echo '<td><a href="/explorer.php?q=address&data='.$value['generator'].'">'.$value['generator'].'</a></td>';
+	echo '<td>'.$value['transactions'].'</td>';
+	echo '</tr>';
+}
+?>
+</table>
+<center>
+	<table class="gridtable">
+		<tr>
+			<td>
+				<?php
+					if($prv_page!=0){
+						echo '<a href="/explorer.php?page='.$prv_page.'"><</a>';
+					}
+				?>
+			</td>
+			<td>
+				<?php
+					if($next_page!=0){
+						echo '<a href="/explorer.php?page='.$next_page.'">></a>';
+					}
+				?>
+			</td>
+		</tr>
+
+	</table>
+</center>
+<?php
+if($page==1){
+	echo '<script type="text/javascript">';
+	echo 'function myrefresh(){';
+	echo 'window.location.reload();';
+	echo '}';
+	echo "setTimeout('myrefresh()',20000);";
+	echo '</script>';
+}
+?>
+</body>
+</html>

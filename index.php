@@ -1,9 +1,11 @@
 <?php
 // version: 20190115 test
+include __DIR__.'/class/base.php';
 include __DIR__.'/lib/OriginSql.lib.php';
 include __DIR__.'/class/MainSQLpdo.php';
-class index{
+class index extends base{
 	function __construct(){
+		parent::__construct();
 	}
 	public function index(){
 		$sql=OriginSql::getInstance();

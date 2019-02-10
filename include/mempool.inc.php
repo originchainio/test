@@ -350,7 +350,7 @@ class Mempoolinc extends base{
 
 
     // add a new transaction to mempool and lock it with the current height
-    public function add_mempool($height,$dst,$val,$fee,$signature,$version,$message,$public_key,$date, $peer = ""){
+    public function add_mempool($height,$dst,$val,$fee,$signature,$version,$message,$public_key,$date, $peer = ''){
         $sql=OriginSql::getInstance();
         $id=$this->hasha($dst,$val,$fee,$signature,$version,$message,$date,$public_key);
         $res=$sql->add('mem',array(

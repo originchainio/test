@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>origin explorer address</title>
+<style type="text/css">
+table.gridtable {
+	font-family: verdana,arial,sans-serif;
+	font-size:11px;
+	color:#333333;
+	border-width: 1px;
+	border-color: #666666;
+	border-collapse: collapse;
+}
+table.gridtable th {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #dedede;
+}
+table.gridtable td {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #ffffff;
+}
+</style>
+
+</head>
+<body>
+	<h1>origin explorer address</h1>
+	<h5><a href="/explorer.php"><<</a></h5>
+<table class="gridtable">
+<tr><td>address</td><td><?=$b['id']?></td></tr>
+<tr><td>public_key</td><td><?=$b['public_key']?></td></tr>
+<tr><td>block</td><td><a href="/explorer.php?q=block&data=<?=$b['block']?>"><?=$b['block']?></a></td></tr>
+<tr><td>balance</td><td><?=number_format($b['balance'], 8, ".", "")?></td></tr>
+<tr><td>alias</td><td><?=$b['alias']?></td></tr>
+</table>
+</body>
+</html>
