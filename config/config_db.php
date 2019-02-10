@@ -6,7 +6,7 @@ return array(
 |--------------------------------------------------------------------------
 */
 	// The database host
-	'db_host' => 'localhost',
+	'db_host' => '127.0.0.1',
 
 	// The database name
 	'db_dbname' => 'my_coin',
