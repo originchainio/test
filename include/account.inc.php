@@ -268,13 +268,40 @@ class Accountinc extends base{
         }
         
     }
+    public function get_address_from_publickey($publickey){
+        $alias_id=san(strtolower($alias));
 
+        $sql=OriginSql::getInstance();
+        $res=$sql->select('acc','id',1,array('public_key="'.$publickey.'"'),'',1);
+        if ($res) {
+            $this->log('get the account of an alias from database [true]');
+            return $res['id'];
+        }else{
+            $this->log('get the account of an alias from database [false]');
+            return false;
+        }
+        
+    }
     //get the alias of an account from database
     public function get_alias_frome_address($address){
         $address=san($address);
 
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','alias',1,array('id="'.$address.'"'),'',1);
+        if ($res) {
+            $this->log('get the alias of an account from database [true]');
+            return $res['alias'];
+        }else{
+            $this->log('get the alias of an account from database [false]');
+            return false;
+        }
+        
+    }
+    public function get_alias_frome_publickey($publickey){
+        $address=san($address);
+
+        $sql=OriginSql::getInstance();
+        $res=$sql->select('acc','alias',1,array('public_key="'.$publickey.'"'),'',1);
         if ($res) {
             $this->log('get the alias of an account from database [true]');
             return $res['alias'];
@@ -324,6 +351,19 @@ class Accountinc extends base{
         $address=san($address);
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','public_key',1,array('id="'.$address.'"'),'',1);
+        if ($res) {
+            $this->log('get the public key for a specific account from database [true]');
+            return $res['public_key'];
+        }else{
+            $this->log('get the public key for a specific account from database [false]');
+            return false;
+        }
+
+    }
+    public function get_public_key_from_alias($alias){
+        $address=san($address);
+        $sql=OriginSql::getInstance();
+        $res=$sql->select('acc','public_key',1,array('alias="'.$alias.'"'),'',1);
         if ($res) {
             $this->log('get the public key for a specific account from database [true]');
             return $res['public_key'];
