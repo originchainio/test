@@ -120,7 +120,7 @@ class Mining extends base{
             $current = $block->current();
 
             $Security=Security::getInstance();
-            $cmd=$Security->cmd($this->config['php_path'].'php propagate.php',['block',$current['id']]);
+            $cmd=$Security->cmd($this->config['php_path'].'php '.dirname(dirname(__FILE__)).'/propagate.php',['block',$current['id']]);
             system($cmd);
 
             return array('status' => true, 'message'=>'accepted');
@@ -167,7 +167,7 @@ class Mining extends base{
             $current = $block->current();
 
             $Security=Security::getInstance();
-            $cmd=$Security->cmd($this->config['php_path'].'php propagate.php',['block',$current['id']]);
+            $cmd=$Security->cmd($this->config['php_path'].'php '.dirname(dirname(__FILE__)).'/propagate.php',['block',$current['id']]);
             system($cmd);
             $this->log('cmd:'.$cmd,1);
             return array('status' => true, 'message'=>'accepted');
