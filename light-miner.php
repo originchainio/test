@@ -3,7 +3,7 @@
 fork https://github.com/arionum/miner
 revise:The algorithmic part makes it applicable to origin
 */
-// version: 20190115 test
+// version: 20190211 test
 class Miner{
     public const VERSION = 'v0.1';
     public const MODE_POOL = 'pool';
@@ -41,8 +41,8 @@ class Miner{
         $this->checkDependencies();
         if (empty($type) || empty($public_key) || empty($node) || ($type == self::MODE_SOLO && empty($private_key))) {
             echo "Usage:\n\n";
-            echo "For Solo mining: ./miner solo <node> <public_key> <private_key>\n";
-            echo "For Pool mining: ./miner pool <pool-address> <your-address>\n\n";
+            echo "For Solo mining: ./light-miner solo <node> <public_key> <private_key>\n";
+            echo "For Pool mining: ./light-miner pool <pool-address> <your-address>\n\n";
             exit;
         }
         if ($type == self::MODE_POOL) {
@@ -134,7 +134,7 @@ class Miner{
                 ],
         ];
         $context = stream_context_create($opts);
-        $res = file_get_contents($this->node."/mine.php?q=submitNonce", false, $context);
+        $res = file_get_contents($this->node."/miner.php?q=submitNonce", false, $context);
         if ($res==false) {
             echo "--> Time out.\n\n";
             return false;
