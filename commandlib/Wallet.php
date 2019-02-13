@@ -16,67 +16,105 @@ class Wallet extends base{
         }
         return self::$_instance;
     }
-    public function abandontransaction($txid){
-
-    }
-    public function bumpfee($txid){
-
-    }
-    public function createwallet(){
+    public function createwallet($mode='all'){
         $Accountinc=Accountinc::getInstance();
-        return $Accountinc->generate_account();
+        $res=$Accountinc->generate_account();
+        if ($res==false) {
+            return array('result' => '', 'error'=>'fail');
+        }else{
+            return array('result' => $res, 'error'=>'');
+        }
     }
-    public function getpublickeybyaddress($address){
+    public function getpublickeybyaddress($mode='all',$address){
         $Accountinc=Accountinc::getInstance();
-        return $Accountinc->get_public_key_from_address($address);
+        $res=$Accountinc->get_public_key_from_address($address);
+        if ($res==false) {
+            return array('result' => '', 'error'=>'fail');
+        }else{
+            return array('result' => $res, 'error'=>'');
+        }
     }
-    public function getpublickeybyalias($alias){
+    public function getpublickeybyalias($mode='all',$alias){
         $Accountinc=Accountinc::getInstance();
-        return $Accountinc->get_public_key_from_alias($alias);
+        $res=$Accountinc->get_public_key_from_alias($alias);
+        if ($res==false) {
+            return array('result' => '', 'error'=>'fail');
+        }else{
+            return array('result' => $res, 'error'=>'');
+        }
     }
-    public function getaliasbyaddress($address){
+    public function getaliasbyaddress($mode='all',$address){
         $Accountinc=Accountinc::getInstance();
-        return $Accountinc->get_alias_frome_address($address);
+        $res=$Accountinc->get_alias_frome_address($address);
+        if ($res==false) {
+            return array('result' => '', 'error'=>'fail');
+        }else{
+            return array('result' => $res, 'error'=>'');
+        }
     }
-    public function getaliasbypublickey($publickey){
+    public function getaliasbypublickey($mode='all',$publickey){
         $Accountinc=Accountinc::getInstance();
-        return $Accountinc->get_alias_frome_publickey($publickey);
+        $res=$Accountinc->get_alias_frome_publickey($publickey);
+        if ($res==false) {
+            return array('result' => '', 'error'=>'fail');
+        }else{
+            return array('result' => $res, 'error'=>'');
+        }
     }
-    public function getaddressesbyalias($alias){
+    public function getaddressesbyalias($mode='all',$alias){
         $Accountinc=Accountinc::getInstance();
-        return $Accountinc->get_address_from_alias($alias);
+        $res=$Accountinc->get_address_from_alias($alias);
+        if ($res==false) {
+            return array('result' => '', 'error'=>'fail');
+        }else{
+            return array('result' => $res, 'error'=>'');
+        }
     }
-    public function getaddressesbypublickey($publickey){
+    public function getaddressesbypublickey($mode='all',$publickey){
         $Accountinc=Accountinc::getInstance();
         return $Accountinc->get_address_from_publickey($publickey);
     }
-    public function getaddressinfo($address){
+    public function getaddressinfo($mode='all',$address){
         $sql=OriginSql::getInstance();
-        return $sql->select('acc','*',1,array("id='".$address."'"),'',1);
+        $res=$sql->select('acc','*',1,array("id='".$address."'"),'',1);
+        if ($res==false) {
+            return array('result' => '', 'error'=>'fail');
+        }else{
+            return array('result' => $res, 'error'=>'');
+        }
     }
-    public function getbalance($address_or_publickey){
+    public function getbalance($mode='all',$address_or_publickey){
         $Accountinc=Accountinc::getInstance();
         $res=$Accountinc->get_balance_from_address($address_or_publickey);
         if ($res) {
-            return $res;
+            return array('result' => $res, 'error'=>'');
         }
         $res=$Accountinc->get_balance_from_public_key($address_or_publickey);
-        return $res;
+        if ($res==false) {
+            return array('result' => '', 'error'=>'fail');
+        }else{
+            return array('result' => $res, 'error'=>'');
+        }
     }
 
-    public function listlockunspent($publickey){
+    public function listlockunspent($mode='all',$publickey){
         $sql=OriginSql::getInstance();
-        return $sql->select('mem','id',0,array("public_key='".$publickey."'"),'',0);
+        $res=$sql->select('mem','id',0,array("public_key='".$publickey."'"),'',0);
+        if ($res==false) {
+            return array('result' => '', 'error'=>'fail');
+        }else{
+            return array('result' => $res, 'error'=>'');
+        }
     }
-    public function sendtoaddress($fromaddress,$toaddress,$privatekey,$amount){
+    public function sendtoaddress($mode='all',$fromaddress,$toaddress,$privatekey,$amount){
         $block=Blockinc::getInstance();
         $current=$block->current();
         if (!$current) {
-            return false;
+            return array('result' => '', 'error'=>'current fail');
         }
         $frompublickey=$this->getpublickeybyaddress($fromaddress);
         if (!$frompublickey) {
-            return false;
+            return array('result' => '', 'error'=>'frompublic fail');
         }
 
         $mem=Mempoolinc::getInstance();
@@ -96,24 +134,24 @@ class Wallet extends base{
             'peer' => 'local',
              ));
         if (!$res) {
-            return false;
+            return array('result' => '', 'error'=>'mem check fail');
         }
         $res=$mem->add_mempool($current['height']+1,$toaddress,$amount,$fee,$signature,1,'',$frompublickey,$tt,'local');
         if ($res) {
-            return true;
+            return array('result' => 'ok', 'error'=>'');
         }else{
-            return false;
+            return array('result' => '', 'error'=>'add mem fail');
         }
     }
-    public function sendtoalias($fromaddress,$alias,$privatekey,$amount){
+    public function sendtoalias($mode='all',$fromaddress,$alias,$privatekey,$amount){
         $block=Blockinc::getInstance();
         $current=$block->current();
         if (!$current) {
-            return false;
+            return array('result' => '', 'error'=>'current fail');
         }
         $frompublickey=$this->getpublickeybyaddress($fromaddress);
         if (!$frompublickey) {
-            return false;
+            return array('result' => '', 'error'=>'frompublic fail');
         }
 
         $mem=Mempoolinc::getInstance();
@@ -133,29 +171,34 @@ class Wallet extends base{
             'peer' => 'local',
              ));
         if (!$res) {
-            return false;
+            return array('result' => '', 'error'=>'mem check fail');
         }
         $res=$mem->add_mempool($current['height']+1,$alias,$amount,$fee,$signature,2,'',$frompublickey,$tt,'local');
         if ($res) {
-            return true;
+            return array('result' => 'ok', 'error'=>'');
         }else{
-            return false;
+            return array('result' => '', 'error'=>'add mem fail');
         }
     }
 
-    public function checkalias($alias){
+    public function checkalias($mode='all',$alias){
         $Accountinc=Accountinc::getInstance();
-        return $Accountinc->alias_alive_from_alias($alias);
+        $res=$Accountinc->alias_alive_from_alias($alias);
+        if ($res==false) {
+            return array('result' => '', 'error'=>'fail');
+        }else{
+            return array('result' => 'ok', 'error'=>'');
+        }
     }
-    public function registalias($fromaddress,$alias){
+    public function registalias($mode='all',$fromaddress,$alias){
         $block=Blockinc::getInstance();
         $current=$block->current();
         if (!$current) {
-            return false;
+            return array('result' => '', 'error'=>'current fail');
         }
         $frompublickey=$this->getpublickeybyaddress($fromaddress);
         if (!$frompublickey) {
-            return false;
+            return array('result' => '', 'error'=>'frompublic fail');
         }
 
         $mem=Mempoolinc::getInstance();
@@ -176,15 +219,15 @@ class Wallet extends base{
             'peer' => 'local',
              ));
         if (!$res) {
-            return false;
+            return array('result' => '', 'error'=>'mem check fail');
         }
 
 
         $res=$mem->add_mempool($current['height']+1,$fromaddress,0,$fee,$signature,3,$alias,$frompublickey,$tt,'local');
         if ($res) {
-            return true;
+            return array('result' => 'ok', 'error'=>'');
         }else{
-            return false;
+            return array('result' => '', 'error'=>'add mem fail');
         }
     }
 }
