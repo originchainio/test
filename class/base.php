@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190128 test
+// version: 20190213 test
 class base
 {
     public $config = array();
@@ -38,8 +38,7 @@ class base
     private function __clone()
     {
     }
-    private function CheckBase()
-    {
+    private function CheckBase(){
         //init
         if ($this->config['init'] == false) {
             echo 'under-maintenance';
@@ -78,8 +77,7 @@ class base
         //     exit;
         // }
     }
-    public final function echo_display_json($status = true, $data)
-    {
+    public final function echo_display_json($status = true, $data){
         if ($status==='') {
             $status=true;
         }
@@ -93,21 +91,18 @@ class base
         }
     }
 
-    private final function is_cli()
-    {
+    private final function is_cli(){
         if (php_sapi_name() == 'cli' or php_sapi_name() == 'cli_server') {
             return true;
         } else {
             return false;
         }
     }
-    private final function get_hostname()
-    {
+    private final function get_hostname(){
         $hostname = (!empty($_SERVER['HTTPS']) ? 'https' : 'http') . "://" . san_host($_SERVER['HTTP_HOST']);
         return $hostname;
     }
-    public function log($data, $verbosity = 0)
-    {
+    public function log($data, $verbosity = 0){
         if ($verbosity==='') {
             $verbosity = 0;
         }
@@ -131,5 +126,11 @@ class base
         // if ($this->config['enable_logging'] == true && $this->config['log_verbosity'] >= $verbosity) {
         //     @file_put_contents($this->config['log_file'], $res, FILE_APPEND);
         // }
+    }
+    public function return_json($result,$error=''){
+        return json_encode(array(
+            'result' => $result,
+            'error'=>$error,
+            ));
     }
 }
