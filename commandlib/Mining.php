@@ -17,12 +17,14 @@ class Mining extends base{
         return self::$_instance;
     }
 
-    public function getmininginfo(){
+    public function getmininginfo($mode='all'){
         $block=Blockinc::getInstance();
-        // provides the mining info to the miner
         $current=$block->current();
 
         $diff = $block->get_next_difficulty($current);
+        if (!$diff) {
+            return array('result' => '', 'error'=>'fail');
+        }
         $argon_mem=16384;
         $argon_threads=4;
         $argon_time=4;
@@ -36,12 +38,11 @@ class Mining extends base{
             "argon_threads"  => $argon_threads,
             "argon_time"  => $argon_time,
         ];
-        return $res;
+        return array('result' => $res, 'error'=>'');
     }
-    public function getminingwork(){
+    public function getminingwork($mode='all'){
         if (file_exists(self::$SANITY_LOCK_PATH)) {
-            $this->echo_display_json(false,'Sanity lock in place');
-            exit;
+            return array('result' => '', 'error'=>'locking');
         }
 
         $block=Blockinc::getInstance();
@@ -56,24 +57,25 @@ class Mining extends base{
         }
 
         $difficulty = $block->get_next_difficulty($current);
-        // always sort  the transactions in the same way
-
-
-        // reward transaction and signature
+        if (!$difficulty) {
+            return array('result' => '', 'error'=>'fail');
+        }
         $reward = $block->reward($current['height']+1, $data);
-        return array(
+        if (!$reward) {
+            return array('result' => '', 'error'=>'fail');
+        }
+        return array('result' => array(
             'height'=>$current['height'] + 1,
             'data'=>$data,
             'reward'=>$reward,
             'block'=>$current['id'],
             'difficulty'=>$difficulty
-        );
+        ), 'error'=>'');
 
     }
-    public function submitblock($nonce,$argon,$public_key,$signature,$reward_signature,$data,$date){
+    public function submitblock($mode='all',$nonce,$argon,$public_key,$signature,$reward_signature,$data,$date){
         if ($this->config['local_node']==true) {
-        	return array('status' => false, 'message'=>'This is local_node can not mine');
-            exit;
+            return array('result' => '', 'error'=>'This is local_node can not mine');
         }
         $nonce = san($nonce);
         $public_key = san($public_key);
@@ -91,21 +93,18 @@ class Mining extends base{
         
         if ($result==false) {
         	$this->log('check block mine [false]',1);
-        	return array('status' => false, 'message'=>'mine-rejected');
-        	exit;
+            return array('result' => '', 'error'=>'mine-rejected');
         }
 
         //date
         if (time()-$current['date']<=30) {
             $this->log('check block date [false]',1);
-            return array('status' => false, 'message'=>'date-rejected');
-            exit;
+            return array('result' => '', 'error'=>'date-rejected');
         }
 
         // generate the new block
         if ($date <= $current['date']) {
-            return array('status' => false, 'message'=>'date-rejected');
-            exit;
+            return array('result' => '', 'error'=>'date-rejected');
         }
 
         $generator = $acc->get_address_from_public_key($public_key);
@@ -116,23 +115,19 @@ class Mining extends base{
 
 
         if ($res) {
-            //if the new block is generated, propagate it to all peers in background
             $current = $block->current();
 
             $Security=Security::getInstance();
             $cmd=$Security->cmd($this->config['php_path'].'php '.dirname(dirname(__FILE__)).'/propagate.php',['block',$current['id']]);
             system($cmd);
-
-            return array('status' => true, 'message'=>'accepted');
+            return array('result' => 'ok', 'error'=>'');
             exit;
         }
-
-        return array('status' => false, 'message'=>'rejected');
+        return array('result' => '', 'error'=>'rejected');
     }
-    public function submitnonce($nonce,$argon,$public_key,$private_key){
+    public function submitnonce($mode='all',$nonce,$argon,$public_key,$private_key){
         if ($this->config['local_node']==true) {
-            return array('status' => false, 'message'=>'This is local_node can not mine');
-            exit;
+            return array('result' => '', 'error'=>'This is local_node can not mine');
         }
         $block=Blockinc::getInstance();
         $current=$block->current();
@@ -147,14 +142,14 @@ class Mining extends base{
 
         if ($result==false) {
         	$this->log('check block mine [false]',1);
-        	return array('status' => false, 'message'=>'mine-rejected');
+        	return array('result' => '', 'error'=>'mine-rejected');
         	exit;
         } 
 
         //date
         if (time()-$current['date']<=30) {
             $this->log('check block date [false]',1);
-            return array('status' => false, 'message'=>'date-rejected');
+            return array('result' => '', 'error'=>'date-rejected');
             exit;
         }
 
@@ -163,17 +158,16 @@ class Mining extends base{
 
 
         if ($res) {
-            //if the new block is generated, propagate it to all peers in background
             $current = $block->current();
 
             $Security=Security::getInstance();
             $cmd=$Security->cmd($this->config['php_path'].'php '.dirname(dirname(__FILE__)).'/propagate.php',['block',$current['id']]);
             system($cmd);
             $this->log('cmd:'.$cmd,1);
-            return array('status' => true, 'message'=>'accepted');
+            return array('result' => 'ok', 'error'=>'');
             exit;
         }
-        return array('status' => false, 'message'=>'rejected');
+        return array('result' => '', 'error'=>'rejected');
     }
 }
 

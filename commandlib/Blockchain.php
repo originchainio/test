@@ -17,39 +17,49 @@ class Blockchain extends base{
         return self::$_instance;
     }
 
-	public function getbestblockhash(){
-		return cache::get('bestblockhash');
+	public function getbestblockhash($mode='all'){
+		return array('result' => cache::get('bestblockhash'), 'error'=>'');
 	}
 
-	public function getblock($blockhash){
+	public function getblock($mode='all',$blockhash){
 		$sql=OriginSql::getInstance();
-		return $sql->select('blocks','*',1,array("id='".$blockhash."'"),'',1);
+		$res=$sql->select('blocks','*',1,array("id='".$blockhash."'"),'',1);
+		if ($res) {
+			return array('result' => $res, 'error'=>'');
+		}else{
+			return array('result' => '', 'error'=>'fail');
+		}
 	}
 
-	public function getblockchaininfo(){
+	public function getblockchaininfo($mode='all'){
 		$sql=OriginSql::getInstance();
-		return $sql->select('blocks','*',1,array(),'height DESC',1);
+		$res=$sql->select('blocks','*',1,array(),'height DESC',1);
+		if ($res) {
+			return array('result' => $res, 'error'=>'');
+		}else{
+			return array('result' => '', 'error'=>'fail');
+		}
 	}	
 
-	public function getblockcount(){
+	public function getblockcount($mode='all'){
 		$sql=OriginSql::getInstance();
 		$res=$sql->select('blocks','height',1,array(),'height DESC',1);
 		if ($res) {
-			return $res['height'];
+			return array('result' => $res['height'], 'error'=>'');
 		}else{
-			return false;
+			return array('result' => '', 'error'=>'fail');
 		}
 	}	
-	public function getblockhash($height){
+	public function getblockhash($mode='all',$height){
 		$sql=OriginSql::getInstance();
 		$res=$sql->select('blocks','id',1,array("height=".$height),'',1);
 		if ($res) {
-			return $res['id'];
+			return array('result' => $res['id'], 'error'=>'');
 		}else{
-			return false;
+			return array('result' => '', 'error'=>'fail');
 		}
 	}
-	public function getblockstats($hash_or_height){
+	public function getblockstats($mode='all',$hash_or_height){
 		$sql=OriginSql::getInstance();
 		if (is_numeric($hash_or_height)) {
 			$res=$sql->select('blocks','*',1,array("height=".$hash_or_height),'',1);
@@ -57,7 +67,7 @@ class Blockchain extends base{
 			$res=$sql->select('blocks','*',1,array("id=".$hash_or_height),'',1);
 		}
 		if (!$res) {
-			return false;
+			return array('result' => '', 'error'=>'fail');
 		}
 
 		$trx_list=$sql->select('trx','val,fee,version',0,array("block='".$res['id']."'"),'',0);
@@ -81,7 +91,7 @@ class Blockchain extends base{
 		}
 		$avgfee=round($all_fee/$trx_count,8);
 
-		return array(
+		$arrayName = array(
 		  "avgfee"=>$avgfee,
 		  "blockhash"=>$res['id'],
 		  "height"=>$res['height'],
@@ -92,8 +102,9 @@ class Blockchain extends base{
 		  "totalfee"=>$all_fee,
 		  "txs"=>$trx_count,
 		);
+		return array('result' => $arrayName, 'error'=>'');
 	}
-	public function getchaintips(){
+	public function getchaintips($mode='all'){
 		$sql=OriginSql::getInstance();
 		$res=$sql->select('blocks','id,height',1,array(),'height DESC',1);
 		$res['status']='active';
@@ -102,33 +113,56 @@ class Blockchain extends base{
 		if ($validfork==false) {
 			$validfork=[];
 		}
-		return array($res,$validfork);
+		return array('result' => array($res,$validfork), 'error'=>'');
 	}
 
-	public function getdifficulty(){
+	public function getdifficulty($mode='all'){
 		$block=Blockinc::getInstance();
-		return $block->get_next_difficulty();
+		$res=$block->get_next_difficulty();
+		if ($res) {
+			return array('result' => $res, 'error'=>'');
+		}else{
+			return array('result' => '', 'error'=>'fail');
+		}
 	}
 
-	public function getmempoolentry($txid){
+	public function getmempoolentry($mode='all',$txid){
 		$sql=OriginSql::getInstance();
-		return $sql->select('mem','*',1,array("id='".$txid."'"),'',1);
+		$res=$sql->select('mem','*',1,array("id='".$txid."'"),'',1);
+		if ($res) {
+			return array('result' => $res, 'error'=>'');
+		}else{
+			return array('result' => '', 'error'=>'fail');
+		}
 	}
 
-	public function getmempoolsize(){
+	public function getmempoolsize($mode='all'){
 		$sql=OriginSql::getInstance();
-		return $sql->select('mem','*',2,array("id='".$txid."'"),'',0);
+		$res=$sql->select('mem','*',2,array(),'',0);
+		if ($res) {
+			return array('result' => $res, 'error'=>'');
+		}else{
+			return array('result' => '', 'error'=>'fail');
+		}
 	}
 
-	public function getrawmempool(){
+	public function getrawmempool($mode='all'){
 		$sql=OriginSql::getInstance();
-		return $sql->select('mem','id',0,array(),'',0);
+		$res=$sql->select('mem','id',0,array(),'',0);
+		if ($res) {
+			return array('result' => $res, 'error'=>'');
+		}else{
+			return array('result' => '', 'error'=>'fail');
+		}
 	}
 
-	public function gettxout($txid){
-		$this->getmempoolentry($txid);
+	public function gettxout($mode='all',$txid){
+		return $this->getmempoolentry($txid);
 	}
-	public function verifychain($start_height,$end_height){
+	public function verifychain($mode='cli',$start_height,$end_height){
+		if ($mode!=='cli') {
+			return array('result' => '', 'error'=>'fail');
+		}
 		$return_array = array();
 
         $start_height = intval($start_height);
@@ -192,11 +226,31 @@ class Blockchain extends base{
         }else{
         	$statuss=false;
         }
-        return array(
+
+        return array('result' => array(
         	'status' => $statuss,
         	'error_result'=>$return_array
-        );
+        ), 'error'=>'');
 	}
+	public function cleanblockchain($mode='cli'){
+		if ($mode!=='cli') {
+			return array('result' => '', 'error'=>'fail');
+		}
+        if (file_exists("/tmp/sanity-lock")) {
+        	return array('result' => '', 'error'=>'locking');
+        }
+        touch("/tmp/sanity-lock");
+        $sql=OriginSql::getInstance();
+        $tables = ["accounts","blocks","transactions","mempool","masternode"];
+        foreach ($tables as $table) {
+            $sql->exec("TRUNCATE TABLE {$table}");
+        }
+        unlink("/tmp/sanity-lock");
+        return array('result' => 'ok', 'error'=>'');
+	}
+
+
+
 }
 
 ?>

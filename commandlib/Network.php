@@ -18,86 +18,165 @@ class Network extends base{
     }
 
     //"node" "add|remove|check"
-    public function addnode($node,$type='add'){
+    public function addnode($mode='cli',$node,$type='add'){
+        if ($mode!=='cli') {
+            return array('result' => '', 'error'=>'fail');
+        }
         switch ($type) {
             case 'add':
                 $sql=OriginSql::getInstance();
                 if ($sql->select('peer','*',2,array("hostname='".$node."'"),'',1)==false) {
                     $res=$sql->add('peer',array('hostname'=>$node,'blacklisted'=>0,'ping'=>0,'reserve'=>1,'ip'=>md5($node),'fails'=>0,'stuckfail'=>0));
                     if ($res) {
-                        return true;
+                        return array('result' => 'ok', 'error'=>'');
                     }
                 }
-                return false;
+                return array('result' => '', 'error'=>'add fail');
                 break;
             case 'remove':
                 $sql=OriginSql::getInstance();
                 if ($sql->select('peer','*',2,array("hostname='".$node."'"),'',1)==false) {
                     $res=$sql->delete('peer',array("hostname='".$node."'"));
                     if ($res) {
-                        return true;
+                        return array('result' => 'ok', 'error'=>'');
                     }
                 }
-                return false;
+                return array('result' => '', 'error'=>'remove fail');
                 break;
             case 'check':
                 $Peerinc=Peerinc::getInstance();
                 if ($Peerinc->check($node)==false) {
-                    return false;
+                    return array('result' => '', 'error'=>'check fail');
                 }
-                return true;
+                return array('result' => 'ok', 'error'=>'');
                 break;
             default:
-                # code...
+                return array('result' => '', 'error'=>'method fail');
                 break;
         }
     }
-    public function clearbanned(){
+    public function checknodeping($mode='cli',$node=''){
+        if ($mode!=='cli') {
+            return array('result' => '', 'error'=>'fail');
+        }
+        if ($node=='') {
+            $result=[];
+            $sql=OriginSql::getInstance();
+            $res=$sql->select('peer','*',0,array(),'',0);
+            foreach ($res as $x) {
+                $a = peer_post($x['hostname']."/peer.php?q=ping");
+                if ($a == "success") {
+                    $s['node']=$x['hostname'];
+                    $s['result']='ok';
+                    $result[]=$s;
+                } else {
+                    $s['node']=$x['hostname'];
+                    $s['result']='error';
+                    $result[]=$s;
+                }
+            }
+        }else{
+            $result=[];
+            $a = peer_post($x['hostname']."/peer.php?q=ping");
+                if ($a == "success") {
+                    $result['node']=$x['hostname'];
+                    $result['result']='ok';
+                } else {
+                    $result['node']=$x['hostname'];
+                    $result['result']='error';
+                }
+        }
+        return array('result' => $result, 'error'=>'');
+    }
+    public function clearbanned($mode='cli'){
+        if ($mode!=='cli') {
+            return array('result' => '', 'error'=>'fail');
+        }
         $Peerinc=Peerinc::getInstance();
         if ($Peerinc->delete_fails_peer()==false) {
-            return false;
+            return array('result' => '', 'error'=>'fail');
         }
-        return true;
+        return array('result' => 'ok', 'error'=>'');
     }
 
-    public function disconnectnode($node){
+    public function disconnectnode($mode='cli',$node){
+        if ($mode!=='cli') {
+            return array('result' => '', 'error'=>'fail');
+        }
         $sql=OriginSql::getInstance();
         if ($sql->select('peer','*',2,array("hostname='".$node."'"),'',1)) {
             $res=$sql->update('peer',array('reserve' => 0),array("hostname='".$node."'"));
             if ($res) {
-                return true;
+                return array('result' => 'ok', 'error'=>'');
             }
         }
-        return false;
+        return array('result' => '', 'error'=>'fail');
     }
-    public function getaddednodeinfo($node){
+    public function getaddednodeinfo($mode='cli',$node){
+        if ($mode!=='cli') {
+            return array('result' => '', 'error'=>'fail');
+        }
         $Peerinc=Peerinc::getInstance();
         if ($Peerinc->ping($node,5)==false) {
-            return false;
+            return array('result' => '', 'error'=>'fail');
         }else{
-            return $peer->peer_post($node."/peer.php?q=currentBlock", [], 5);
+            $res=$peer->peer_post($node."/peer.php?q=currentBlock", [], 5)
+            if ($res==false) {
+                return array('result' => '', 'error'=>'fail');
+            }else{
+                return array('result' => $res, 'error'=>'');
+            }
         }
     }
-    public function getconnectioncount(){
+    public function getconnectioncount($mode='cli'){
+        if ($mode!=='cli') {
+            return array('result' => '', 'error'=>'fail');
+        }
         $sql=OriginSql::getInstance();
         $all_count=$sql->select('peer','*',2,array("reserve=1"),'',1);
         if ($all_count>=$this->config['max_peer']) {
-            return $this->config['max_peer'];
+            return array('result' => $this->config['max_peer'], 'error'=>'');
         }else{
-            return $all_count;
+            return array('result' => $all_count, 'error'=>'');
         }
     }
-    public function getpeerinfo(){
+    public function getpeerinfo($mode='cli'){
+        if ($mode!=='cli') {
+            return array('result' => '', 'error'=>'fail');
+        }
         $sql=OriginSql::getInstance();
-        return $sql->select('peer','*',0,array("reserve=1"),'',0);
+        $res=$sql->select('peer','*',0,array("reserve=1"),'',0);
+        if ($res) {
+            return array('result' => $res, 'error'=>'');
+        }else{
+            return array('result' => '', 'error'=>'fail');
+        }
     }
-    public function listbanned(){
+    public function listbanned($mode='cli'){
+        if ($mode!=='cli') {
+            return array('result' => '', 'error'=>'fail');
+        }
         $sql=OriginSql::getInstance();
-        return $sql->select('peer','*',0,array("reserve=0"),'',0);
+        $res=$sql->select('peer','*',0,array("reserve=0"),'',0);
+        if ($res) {
+            return array('result' => $res, 'error'=>'');
+        }else{
+            return array('result' => '', 'error'=>'fail');
+        }
     }
-    public function ping($node){
+    public function ping($mode='cli',$node){
+        if ($mode!=='cli') {
+            return array('result' => '', 'error'=>'fail');
+        }
         $Peerinc=Peerinc::getInstance();
-        return $Peerinc->ping($node,5);
+        if ($Peerinc->ping($node,5)==false) {
+            return array('result' => '', 'error'=>'fail');
+        }else{
+            return array('result' => 'ok', 'error'=>'');
+        }
+    }
+    public function getversion($mode='all'){
+        return array('result' => $this->info['version'], 'error'=>'');
     }
 }
 
