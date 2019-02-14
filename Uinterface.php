@@ -69,7 +69,7 @@ class Uinterface extends base{
                 echo json_encode(array('result' => '','error'=>'private-api' ));
             }
 
-            $method = $_GET['method'];
+            $method = $_GET['m'];
             if (!empty($_POST['data'])) {
                 $data = json_decode($_POST['data'], true);
             } else {
