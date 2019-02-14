@@ -236,16 +236,16 @@ class Blockchain extends base{
 		if ($mode!=='cli') {
 			return array('result' => '', 'error'=>'fail');
 		}
-        if (file_exists("/tmp/sanity-lock")) {
+
+        if (cache::get('sync_lock')) {
         	return array('result' => '', 'error'=>'locking');
         }
-        touch("/tmp/sanity-lock");
         $sql=OriginSql::getInstance();
         $tables = ["accounts","blocks","transactions","mempool","masternode"];
         foreach ($tables as $table) {
             $sql->exec("TRUNCATE TABLE {$table}");
         }
-        unlink("/tmp/sanity-lock");
+        cache::delete('sync_lock');
         return array('result' => 'ok', 'error'=>'');
 	}
 

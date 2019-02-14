@@ -2,7 +2,7 @@
 /**
  * 
  */
-// version: 20190211 test
+// version: 20190214 test
 class Mining extends base{
 	private static $_instance = null;
 
@@ -66,7 +66,7 @@ class Mining extends base{
         }
         return array('result' => array(
             'height'=>$current['height'] + 1,
-            'data'=>$data,
+            //'data'=>$data,
             'reward'=>$reward,
             'block'=>$current['id'],
             'difficulty'=>$difficulty
@@ -118,7 +118,7 @@ class Mining extends base{
             $current = $block->current();
 
             $Security=Security::getInstance();
-            $cmd=$Security->cmd($this->config['php_path'].'php '.dirname(dirname(__FILE__)).'/propagate.php',['block',$current['id']]);
+            $cmd=$Security->cmd($this->config['php_path'].'php '.dirname(dirname(__FILE__)).'/send.php',['block',$current['id']]);
             system($cmd);
             return array('result' => 'ok', 'error'=>'');
             exit;
@@ -161,7 +161,7 @@ class Mining extends base{
             $current = $block->current();
 
             $Security=Security::getInstance();
-            $cmd=$Security->cmd($this->config['php_path'].'php '.dirname(dirname(__FILE__)).'/propagate.php',['block',$current['id']]);
+            $cmd=$Security->cmd($this->config['php_path'].'php '.dirname(dirname(__FILE__)).'/send.php',['block',$current['id']]);
             system($cmd);
             $this->log('cmd:'.$cmd,1);
             return array('result' => 'ok', 'error'=>'');
