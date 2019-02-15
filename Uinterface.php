@@ -1,5 +1,5 @@
 <?php
-// version: 20190213 test
+// version: 20190215 test
 include __DIR__.'/class/base.php';
 include __DIR__.'/include/account.inc.php';
 include __DIR__.'/include/blacklist.inc.php';
@@ -44,19 +44,19 @@ class Uinterface extends base{
                 $lib=$value::getInstance();
                 if (method_exists($lib,$method)) {
                     $p = new ReflectionMethod($value,$method);
-                    $p->getParameters();
-                    array_shift($p);
+                    $params=$p->getParameters();
+                    array_shift($params);
                     $fire_args=array();
 
-                    foreach ($p as $keyy => $valuee) {
+                    foreach ($params as $keyy => $valuee) {
                         if (!isset($argv[$keyy+2])) {
                             echo_array(array('result' => '','error'=>'parameter is no found' ));
                             exit;
                         }
                         $fire_args[]=trim($argv[$keyy+2]);
                     }
-                    $fire_args_str=implode(",",$fire_args);
-                    echo_array($value->$method($this->mode,$fire_args_str));
+                    //$fire_args_str=implode(",",$fire_args);
+                    echo_array($lib->$method($this->mode,...$fire_args));
                     exit;
                 }
             }
@@ -72,8 +72,11 @@ class Uinterface extends base{
             $method = $_GET['m'];
             if (!empty($_POST['data'])) {
                 $data = json_decode($_POST['data'], true);
-            } else {
+            }elseif(empty($_POST['data']) and !empty($_POST)){
+                $data = $_POST;
+            }else {
                 $data = $_GET;
+                unset($data['m']);
             }
 
             $commandlib=array('Blockchain','Mining','Network','Wallet');
@@ -82,19 +85,23 @@ class Uinterface extends base{
                 $lib=$value::getInstance();
                 if (method_exists($lib,$method)) {
                     $p = new ReflectionMethod($value,$method);
-                    $p->getParameters();
-                    array_shift($p);
+                    $params=$p->getParameters();
+
+                    array_shift($params);        
                     $fire_args=array();
 
-                    foreach ($p as $valuee) {
+                    foreach ($params as $valuee) {
                         if (!isset($data[$valuee->name])) {
-                            echo json_encode(array('result' => '','error'=>'parameter is no found' ));
+                            echo json_encode(array('result' => '','error'=>'parameter is no found'));
                             exit;
                         }
                         $fire_args[]=trim($data[$valuee->name]);
+                        //$this->log($valuee->name.'  '.trim($data[$valuee->name]));
                     }
-                    $fire_args_str=implode(",",$fire_args);
-                    echo $this->json_encode($value->$method($this->mode,$fire_args_str));
+
+                    //$fire_args_str=implode(",",$fire_args);
+                    //$this->log($method.'  '.$this->mode.','.$fire_args_str);
+                    echo json_encode($lib->$method($this->mode,...$fire_args));
                     exit;
                 }
             }

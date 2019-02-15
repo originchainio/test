@@ -26,9 +26,10 @@ class Lightminer{
         }else{
         	$res = file_get_contents($this->node."/Uinterface.php?m=getminingwork");
         }
-       
+       echo 'Update:'.$this->node."/Uinterface.php?m=getminingwork\n";
         $info = json_decode($res, true);
         if (!isset($info['result']) or $info['error']!='') {
+        	//echo_array($info);	exit;
         	return false;
         }
 
@@ -60,7 +61,7 @@ class Lightminer{
         $speed=0;
         $avgSpeed=0;
         $start = microtime(true);
-
+        $submit=0;
         $mininginfo=[];
         while (1) {
             $counter++;
@@ -72,11 +73,13 @@ class Lightminer{
                     "Shares: ".$confirm." ".
                     "Finds: ".$found."\n";
                     $res=$this->update($mode);
+                    
                 if ($res) {
                 	$mininginfo=$res;
                 }
                 $lastUpdate=time();
             }
+
             $nonce = base64_encode(openssl_random_pseudo_bytes(32));
             $nonce = preg_replace("/[^a-zA-Z0-9]/", "", $nonce);
 
@@ -101,38 +104,50 @@ class Lightminer{
                     echo "verify success"."\n";
                 }
                 $argon=substr($argon, 29);
-                $confirmed = $this->submit($nonce, $argon);
+                $confirmed = $this->submit($mode,$nonce, $argon);
                 //echo "\nARGON: $argon\n";
                 //echo "\nBase: $base\n";
                 if ($confirmed && $result <= 50) {
-                    $this->found++;
+                    $found++;
                 } elseif ($confirmed) {
-                    $this->confirm++;
+                    $confirm++;
                 }
-                $this->submit++;
+                $submit++;
                 //sleep(3);  //test
             }
             $it++;
             if ($it == 10) {
                 $it = 0;
                 $end = microtime(true);
-                $this->speed = 10 / ($end - $start);
-                $this->avgSpeed = $this->counter / ($end - $this->allTime);
+                $speed = 10 / ($end - $start);
+                $avgSpeed = $counter / ($end - $allTime);
                 $start = $end;
             }
         }
 	}
-    private function submit(string $nonce, string $argon){
+    private function submit($mode,$nonce,$argon){
         echo "--> Submitting nonce $nonce / $argon\n";
-        $postData = http_build_query(
-            [
-                'argon'       => $argon,
-                'nonce'       => $nonce,
-                'private_key' => $this->privateKey,
-                'public_key'  => $this->publicKey,
-                'address'     => $this->privateKey,
-            ]
-        );
+        if ($mode=='solo') {
+	        $postData = http_build_query(
+	            [
+	                'argon'       => $argon,
+	                'nonce'       => $nonce,
+	                'private_key' => $this->private_key,
+	                'public_key'  => $this->public_key,
+	            ]
+	        );
+        }else{
+	        $postData = http_build_query(
+	            [
+	                'argon'       => $argon,
+	                'nonce'       => $nonce,
+	                'public_key'  => $this->public_key,
+	                'address'     => $this->youraddress,
+	                'yourwork'     => $this->yourwork,
+	            ]
+	        );
+        }
+
         $opts = [
             'http' =>
                 [
@@ -148,7 +163,6 @@ class Lightminer{
             return false;
         }
         $data = json_decode($res, true);
-        //echo_array($res);
         if ($data['result'] == 'ok') {
             echo "\n--> Nonce confirmed.\n";
             return true;
