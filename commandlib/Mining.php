@@ -41,7 +41,7 @@ class Mining extends base{
         return array('result' => $res, 'error'=>'');
     }
     public function getminingwork($mode='all'){
-        if (file_exists(self::$SANITY_LOCK_PATH)) {
+        if (cache::get('sync_lock')!=false) {
             return array('result' => '', 'error'=>'locking');
         }
 

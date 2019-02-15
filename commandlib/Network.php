@@ -2,7 +2,7 @@
 /**
  * 
  */
-// version: 20190212 test
+// version: 20190215 test
 class Network extends base{
 	private static $_instance = null;
 
@@ -120,7 +120,7 @@ class Network extends base{
         if ($Peerinc->ping($node,5)==false) {
             return array('result' => '', 'error'=>'fail');
         }else{
-            $res=$peer->peer_post($node."/peer.php?q=currentBlock", [], 5)
+            $res=$peer->peer_post($node."/peer.php?q=currentBlock", [], 5);
             if ($res==false) {
                 return array('result' => '', 'error'=>'fail');
             }else{
