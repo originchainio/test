@@ -48,17 +48,6 @@ CREATE TABLE `blocks` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
--- Table structure for config
--- ----------------------------
-DROP TABLE IF EXISTS `config`;
-CREATE TABLE `config` (
-  `cfg` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-  `val` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-  PRIMARY KEY (`cfg`),
-  KEY `cfg` (`cfg`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- ----------------------------
 -- Table structure for masternode
 -- ----------------------------
 DROP TABLE IF EXISTS `masternode`;
@@ -143,13 +132,3 @@ CREATE TABLE `transactions` (
   KEY `public_key` (`public_key`),
   KEY `block` (`block`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- ----------------------------
--- Records of config
--- ----------------------------
-INSERT INTO `config` VALUES ('dbversion', '1');
-INSERT INTO `config` VALUES ('last_resync', '0');
-INSERT INTO `config` VALUES ('sanity_last', '0');
-INSERT INTO `config` VALUES ('sanity_sync', '0');
-INSERT INTO `config` VALUES ('sanity_sync_block', '1');
-INSERT INTO `config` VALUES ('version', '20181220');
