@@ -35,7 +35,7 @@ class Peerinc extends base{
         }
         return self::$_instance;
     }
-    //设置fails
+    //set fails
     public function update_peer_fails($hostname,$fails){
         $sql=OriginSql::getInstance();
 
@@ -46,7 +46,7 @@ class Peerinc extends base{
             return false;
         }
     }
-    //设置stuckfail
+    //set stuckfail
     public function update_peer_stuckfail($hostname,$stuckfail,$blacklisted=''){
         $sql=OriginSql::getInstance();
 
@@ -97,7 +97,6 @@ class Peerinc extends base{
         //
         return true;
     }
-    //判断peer是不是在bad-peer列表里边
     public function check_bad_peer($hostname,$bad_peers=array()){
         $is_available=false;
         $tpeer=str_replace(["https://","http://","//"], "", $hostname);
@@ -109,7 +108,6 @@ class Peerinc extends base{
 
         return $is_available;
     }
-    //删除fails 100以上  stu 100以上的 peer
     public function delete_fails_peer(){
         $sql=OriginSql::getInstance();
         $res=$sql->delete('peer',array("fails>100 or stuckfail>100"));
@@ -119,7 +117,7 @@ class Peerinc extends base{
             return false;
         }
     }
-    //得到更多的reserve=0 blacklisted<time() 的 peer
+    //reserve=0 blacklisted<time()
     public function get_peer_max($max=10){
         if ($max==='') {
             $max=10;
@@ -133,7 +131,7 @@ class Peerinc extends base{
             return false;
         }
     }
-    //peer是不是存在于数据库里边
+    //peer db
     public function get_peer_count_from_hostname($hostname){
         $sql=OriginSql::getInstance();
         $res=$sql->select('peer','*',2,array("hostname='".$hostname."'"),'',1);
@@ -175,7 +173,6 @@ class Peerinc extends base{
 
         return true;
     }
-    //装在配置中的peer
     public function install_config_peer(){
         $sql=OriginSql::getInstance();
         foreach ($this->config['initial_peer_list'] as $value) {

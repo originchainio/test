@@ -37,6 +37,7 @@ class Blockinc extends base{
     }
     // creates a new block on this node
     public function forge($nonce, $argon, $miner_public_key,$reward_miner_private_key){
+
         $nonce=trim($nonce);
         $argon=trim($argon);
         $miner_public_key=san($miner_public_key);
@@ -80,10 +81,15 @@ class Blockinc extends base{
         }
         // get the mempool transactions
         $data = $Mempool->get_mempool_transaction_for_news($current['height']+1,$this->max_transactions());
+        if ($data===false) {
+            return false;
+        }
+
         //reward
         $block_reward = $this->reward($current['height']+1, $data);
         $mn_reward=number_format(round(0.35*$block_reward, 8), 8, ".", "");
         $miner_reward=number_format(round($block_reward-$mn_reward, 8), 8, ".", "");
+
         //miner reward
         $tran = [
             "height"     => $current['height']+1,
@@ -147,10 +153,13 @@ class Blockinc extends base{
             $tran['id'] = $Transaction->hasha($tran['dst'],$tran['val'],$tran['fee'],$mn_signature,$tran['version'],$tran['message'],$tran['date'],$tran['public_key']);
             $data[]=$tran;
         }
+
         // block signature
         $block_signature = $this->signature($miner_address,$current['height']+1,$date,$nonce,$data,$difficulty, $argon,$reward_miner_private_key);
+
         // add the block to the blockchain
         $res = $this->add($miner_public_key,$current['height']+1, $nonce, $data, $date, $difficulty,$block_signature, $miner_signature,$mn_signature, $argon);
+
         if (!$res) {
             $this->log("Forge block [false]",3);
             return false;
@@ -160,6 +169,7 @@ class Blockinc extends base{
     }
 
     public function add($miner_public_key,$height, $nonce, $data=array(), $date, $difficulty,$block_signature, $miner_signature,$mn_signature,$argon){
+
         $miner_public_key=san($miner_public_key);
         $height=intval($height);
         $nonce=trim($nonce);
@@ -213,9 +223,11 @@ class Blockinc extends base{
 
         // lock table to avoid race conditions on blocks
         $sql->lock_tables();
+
         // insert the block into the db
         $sql->beginTransaction();
         // add block
+
         $res = $sql->add('block',array(
                                     'id'=>$block_hash,
                                     'generator'=>$miner_address,

@@ -237,7 +237,7 @@ class Blockchain extends base{
 			return array('result' => '', 'error'=>'fail');
 		}
 
-        if (cache::get('sync_lock')) {
+        if (cache::get('sync_lock')=='lock') {
         	return array('result' => '', 'error'=>'locking');
         }
         $sql=OriginSql::getInstance();
@@ -245,7 +245,7 @@ class Blockchain extends base{
         foreach ($tables as $table) {
             $sql->exec("TRUNCATE TABLE {$table}");
         }
-        cache::delete('sync_lock');
+        cache::set('sync_lock','unlock',900);
         return array('result' => 'ok', 'error'=>'');
 	}
 

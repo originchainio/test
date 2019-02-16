@@ -41,7 +41,7 @@ class Mining extends base{
         return array('result' => $res, 'error'=>'');
     }
     public function getminingwork($mode='all'){
-        if (cache::get('sync_lock')!=false) {
+        if (cache::get('sync_lock')=='lock') {
             return array('result' => '', 'error'=>'locking');
         }
 
@@ -126,17 +126,24 @@ class Mining extends base{
         return array('result' => '', 'error'=>'rejected');
     }
     public function submitnonce($mode='all',$nonce,$argon,$public_key,$private_key){
+
         if ($this->config['local_node']==true) {
             return array('result' => '', 'error'=>'This is local_node can not mine');
         }
         $block=Blockinc::getInstance();
         $current=$block->current();
-
+        if ($current==false) {
+            return array('result' => '', 'error'=>'This is current get fail');
+        }
         $nonce = san($nonce);
         $public_key = san($public_key);
         $private_key = san($private_key);
 
         $diff = $block->get_next_difficulty($current);
+        if ($diff==false) {
+            return array('result' => '', 'error'=>'diff get fail');
+        }
+
         // check if the miner won the block
         $result = $block->mine($public_key, $nonce, $argon,$diff, $current['id'], $current['height'], time());
 

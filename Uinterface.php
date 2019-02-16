@@ -1,5 +1,5 @@
 <?php
-// version: 20190215 test
+// version: 20190216 test
 include __DIR__.'/class/base.php';
 include __DIR__.'/include/account.inc.php';
 include __DIR__.'/include/blacklist.inc.php';
@@ -22,8 +22,9 @@ include __DIR__.'/commandlib/Blockchain.php';
 include __DIR__.'/commandlib/Mining.php';
 include __DIR__.'/commandlib/Network.php';
 include __DIR__.'/commandlib/Wallet.php';
+include __DIR__.'/commandlib/Masternode.php';
 class Uinterface extends base{
-    private $mode = 'cli';
+    public $mode = 'cli';
     function __construct(){
         parent::__construct();
         if ($this->info['cli'] != true) {
@@ -35,10 +36,12 @@ class Uinterface extends base{
 
     public function main(){
         if ($this->mode=='cli') {
+            global $argv;
+            //echo_array($argv);
             if (!isset($argv[1])) { exit;   }
             $method=$argv[1];
 
-            $commandlib=array('Blockchain','Mining','Network','Wallet');
+            $commandlib=array('Blockchain','Masternode','Mining','Network','Wallet');
 
             foreach ($commandlib as $value) {
                 $lib=$value::getInstance();
@@ -56,6 +59,7 @@ class Uinterface extends base{
                         $fire_args[]=trim($argv[$keyy+2]);
                     }
                     //$fire_args_str=implode(",",$fire_args);
+                    //echo_array($fire_args);
                     echo_array($lib->$method($this->mode,...$fire_args));
                     exit;
                 }
@@ -79,7 +83,7 @@ class Uinterface extends base{
                 unset($data['m']);
             }
 
-            $commandlib=array('Blockchain','Mining','Network','Wallet');
+            $commandlib=array('Blockchain','Masternode','Mining','Network','Wallet');
 
             foreach ($commandlib as $value) {
                 $lib=$value::getInstance();
@@ -101,6 +105,7 @@ class Uinterface extends base{
 
                     //$fire_args_str=implode(",",$fire_args);
                     //$this->log($method.'  '.$this->mode.','.$fire_args_str);
+
                     echo json_encode($lib->$method($this->mode,...$fire_args));
                     exit;
                 }

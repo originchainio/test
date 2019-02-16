@@ -2,7 +2,7 @@
 /**
  * 
  */
-// version: 20190212 test
+// version: 20190216 test
 class Wallet extends base{
 	private static $_instance = null;
 
@@ -112,7 +112,8 @@ class Wallet extends base{
         if (!$current) {
             return array('result' => '', 'error'=>'current fail');
         }
-        $frompublickey=$this->getpublickeybyaddress($fromaddress);
+        $Accountinc=Accountinc::getInstance();
+        $frompublickey=$Accountinc->get_public_key_from_address($fromaddress);
         if (!$frompublickey) {
             return array('result' => '', 'error'=>'frompublic fail');
         }
@@ -121,7 +122,11 @@ class Wallet extends base{
         $fee=$amount*0.005;
         $tt=time();
         $signature=$mem->signature($toaddress,$amount,$fee,1,'',$tt,$frompublickey, $privatekey);
+        $hash=$mem->hasha($toaddress,$amount,$fee,$signature,1,'',$tt,$frompublickey);
+
+
         $res=$mem->check(array(
+            'id' => $hash,
             'height' => $current['height']+1,
             'dst' => $toaddress,
             'val' => $amount,
@@ -149,7 +154,8 @@ class Wallet extends base{
         if (!$current) {
             return array('result' => '', 'error'=>'current fail');
         }
-        $frompublickey=$this->getpublickeybyaddress($fromaddress);
+        $Accountinc=Accountinc::getInstance();
+        $frompublickey=$Accountinc->get_public_key_from_address($fromaddress);
         if (!$frompublickey) {
             return array('result' => '', 'error'=>'frompublic fail');
         }
@@ -158,7 +164,10 @@ class Wallet extends base{
         $fee=$amount*0.005;
         $tt=time();
         $signature=$mem->signature($alias,$amount,$fee,2,'',$tt,$frompublickey, $privatekey);
+        $hash=$mem->hasha($alias,$amount,$fee,$signature,2,'',$tt,$frompublickey);
+
         $res=$mem->check(array(
+            'id' => $hash,
             'height' => $current['height']+1,
             'dst' => $alias,
             'val' => $amount,
@@ -196,7 +205,8 @@ class Wallet extends base{
         if (!$current) {
             return array('result' => '', 'error'=>'current fail');
         }
-        $frompublickey=$this->getpublickeybyaddress($fromaddress);
+        $Accountinc=Accountinc::getInstance();
+        $frompublickey=$Accountinc->get_public_key_from_address($fromaddress);
         if (!$frompublickey) {
             return array('result' => '', 'error'=>'frompublic fail');
         }

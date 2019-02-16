@@ -1,5 +1,5 @@
 <?php
-// version: 20190214 test
+// version: 20190215 test
 include __DIR__.'/class/base.php';
 include __DIR__.'/include/account.inc.php';
 include __DIR__.'/include/blacklist.inc.php';
@@ -28,16 +28,17 @@ class sync extends base{
 	}
 
 	private function check_lock(){
-		if (cache::get('sync_lock')!=false) {
+		if (cache::get('sync_lock')!='unlock') {
 			die("Sync lock\n");
 		}
 	}
 	private function set_new_lock(){
-		cache::set('sync_lock',time(),900)
+		cache::set('sync_lock','lock',900);
+		
 	}
 
 	private function un_lock(){
-		cache::delete('sync_lock');
+		cache::set('sync_lock','unlock',900);
 	}
 
 	public function main(){
@@ -175,7 +176,7 @@ class sync extends base{
 			$block_parse_failed=$this->current2largest($peer_block['peer'][$largest_height_block],$largest_height,$largest_height_block,$most_common_id,$most_common_num,count($active_peers));
 
 			$current=$block->current();
-		    $config->set_val('sanity_sync',time());
+			cache::set('sync_synchronization_time',time(),0);
 		}
 		//
 
@@ -209,7 +210,7 @@ class sync extends base{
 
 		//recheck the last blocks
 		$this->log("Rechecking blocks");
-		$config->set_val('sanity_last',time());
+		cache::set('sync_last_time',time(),0);
 		echo "All checked blocks are ok\n";
 		$this->log("Finishing sanity");
 
@@ -521,18 +522,7 @@ class sync extends base{
 	            $data['mn_reward_signature'],
 	            $data['data']['argon']
 	        );
-	        // $sql=OriginSql::getInstance();
-	        // $res = $sql->add('block',array(
-	        //                             'id'=>$data['data']['id'],
-	        //                             'generator'=>$data['data']['generator'],
-	        //                             'height'=>$data['data']['height'],
-	        //                             'date'=>$data['data']['date'],
-	        //                             'nonce'=>$data['data']['nonce'],
-	        //                             'signature'=>$data['data']['signature'],
-	        //                             'difficulty'=>$data['data']['difficulty'],
-	        //                             'argon'=>$data['data']['argon'],
-	        //                             'transactions'=>$data['data']['transactions']
-	        // ));
+
 	        if (!$res) {
 	            $this->log("Block add: could not add block - ".$data['data']['height']);
 	            break;
@@ -540,7 +530,12 @@ class sync extends base{
 	        	$this->log("Synced block from $from_host - ".$data['data']['height']);
 	        }
 		}
-	    $this->un_lock();
+	    if (!$this->un_lock()) {
+	    	$this->log("del lock false");
+	    }else{
+	    	$this->log("del lock true");
+	    }
+	    
 	    exit;
 	}
 }

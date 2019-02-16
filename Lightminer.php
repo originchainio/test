@@ -163,11 +163,12 @@ class Lightminer{
             return false;
         }
         $data = json_decode($res, true);
+
         if ($data['result'] == 'ok') {
-            echo "\n--> Nonce confirmed.\n";
+            echo "\n--> confirmed.\n";
             return true;
         } else {
-            echo "--> The nonce did not confirm.\n\n";
+            echo "--> ".$data['error']."\n\n";
             return false;
         }
     }

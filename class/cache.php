@@ -6,11 +6,11 @@ class cache
     protected $_options = array(
         'cache_dir'        => "./cache/",
         'file_name_prefix' => 'cache',
-        'mode'            => '2', //mode 1 为serialize model 2为保存为可执行文件
+        'mode'            => '2', //mode=1:serialize model=2:file
     );  
      
     /**
-     * 得到本类实例
+     * getInstance
      * 
      * @return Ambiguous
      */
@@ -24,7 +24,7 @@ class cache
     } 
      
     /**
-     * 得到缓存信息
+     * get
      * 
      * @param string $id
      * @return boolean|array
@@ -34,7 +34,6 @@ class cache
         $id=$id.".php";
         $instance = self::getInstance();
          
-        //缓存文件不存在
         if(!$instance->has($id))
         {
             return false;
@@ -52,11 +51,11 @@ class cache
     }
      
     /**
-     * 设置一个缓存
+     * set
      * 
-     * @param string $id   缓存id
-     * @param array  $data 缓存内容
-     * @param int    $cacheLife 缓存生命 默认为0无限生命
+     * @param string $id   id
+     * @param array  $data data
+     * @param int    $cacheLife Cache life defaults to 0 infinite life
      */
     public static function set($id, $data, $cacheLife = 0)
     {
@@ -75,7 +74,7 @@ class cache
     }
      
     /**
-     * 清除一条缓存
+     * clear cache
      * 
      * @param string cache id    
      * @return void
@@ -89,15 +88,15 @@ class cache
             return false;
         }
         $file = $instance->_file($id);
-        //删除该缓存
+        //del
         return unlink($file);
     }
      
     /**
-     * 判断缓存是否存在
+     * cache has
      * 
      * @param string $id cache_id
-     * @return boolean true 缓存存在 false 缓存不存在
+     * @return boolean true or false
      */
     public static function has($id)
     {
@@ -112,9 +111,9 @@ class cache
     }
      
     /**
-     * 通过缓存id得到缓存信息路径
+     * get file info from id
      * @param string $id
-     * @return string 缓存文件路径
+     * @return string file
      */
     protected function _file($id)
     {
@@ -124,10 +123,10 @@ class cache
     }   
      
     /**
-     * 通过id得到缓存信息存储文件名
+     * get filename from id
      * 
      * @param  $id
-     * @return string 缓存文件名
+     * @return string filename
      */
     protected function _idToFileName($id)
     {
@@ -137,10 +136,10 @@ class cache
     }
      
     /**
-     * 通过filename得到缓存id
+     * get id from filename
      * 
      * @param  $id
-     * @return string 缓存id
+     * @return string id
      */
     protected function _fileNameToId($fileName)
     {
@@ -150,10 +149,10 @@ class cache
     }
      
     /**
-     * 把数据写入文件
+     * write data
      * 
-     * @param string $file 文件名称
-     * @param array  $contents 数据内容
+     * @param string $file filename
+     * @param array  $contents data
      * @return bool 
      */
     protected function _filePutContents($file, $contents)
@@ -189,7 +188,7 @@ class cache
     }
      
     /**
-     * 从文件得到数据
+     * get data from file
      * 
      * @param  sring $file
      * @return boolean|array
@@ -213,17 +212,14 @@ class cache
             return include $file;
         }
     }
-     
-    /**
-     * 构造函数
-     */
+
     protected function __construct()
     {
      
     }
      
     /**
-     * 设置缓存路径
+     * set cache dir
      * 
      * @param string $path
      * @return self
@@ -232,10 +228,10 @@ class cache
     {
         $instance  = self::getInstance();
         if (!is_dir($path)) {
-            exit('file_cache: ' . $path.' 不是一个有效路径 ');
+            exit('file_cache: ' . $path.' invalid ');
         }
         if (!is_writable($path)) {
-            exit('file_cache: 路径 "'.$path.'" 不可写');
+            exit('file_cache: dir "'.$path.'" no write');
         }
      
         $path = rtrim($path,'/') . '/';
@@ -245,7 +241,7 @@ class cache
     }
      
     /**
-     * 设置缓存文件前缀
+     * set prefix
      * 
      * @param srting $prefix
      * @return self
@@ -258,7 +254,7 @@ class cache
     }
      
     /**
-     * 设置缓存存储类型
+     * set mode
      * 
      * @param int $mode
      * @return self
@@ -279,7 +275,7 @@ class cache
     }
      
     /**
-     * 删除所有缓存
+     * del all
      * @return boolean
      */
     public static function flush()

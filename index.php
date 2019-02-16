@@ -1,7 +1,8 @@
 <?php
-// version: 20190115 test
+// version: 20190215 test
 include __DIR__.'/class/base.php';
 include __DIR__.'/lib/OriginSql.lib.php';
+include __DIR__.'/class/cache.php';
 include __DIR__.'/class/MainSQLpdo.php';
 class index extends base{
 	function __construct(){
@@ -12,9 +13,8 @@ class index extends base{
 
 		$res=$sql->select('blocks','*',1,'','height DESC',1);
 		$height=$res['height'];
-		$res=$sql->select('config','val',1,array("cfg='sanity_last'"),'',1);
-		$sanity_last=$res['$sanity_last'];
-
+		$sync_synchronization_time=cache::get('sync_synchronization_time');
+		$sync_last_time=cache::get('sync_last_time');
 
 		include $this->echo_display('index');
 

@@ -29,7 +29,7 @@ class receive extends base{
 
     public function submitTransaction($id,$height,$dst,$val,$fee,$signature,$version,$message,$date,$public_key,$peer){
 
-        if (cache::get('sync_block')) {
+        if (cache::get('sync_block')=='lock') {
 
             $this->echo_display_json(false,'sync lock');
             exit;
@@ -85,7 +85,7 @@ class receive extends base{
     }
     //Other peer block is sent to me
     public function submitBlock($data,$trx_data,$miner_public_key,$miner_reward_signature,$mn_public_key,$mn_reward_signature,$from_host=''){
-        if (cache::get('sync_block')) {
+        if (cache::get('sync_block')=='lock') {
             $this->echo_display_json(false,'Sanity lock in place');
             exit;
         }

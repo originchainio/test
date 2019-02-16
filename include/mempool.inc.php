@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190128 test
+// version: 20190216 test
 class Mempoolinc extends base{
     private static $_instance = null;
     function __construct(){
@@ -89,12 +89,12 @@ class Mempoolinc extends base{
         //public
         // public key must be at least 15 chars / probably should be replaced with the validator function
         if (strlen($x['public_key']) < 15) {    $this->log('check public key len [false]');   return false;   }
-        //统一检查发送方账号是否存在
+        //check from publickey
         if ($x['version']==1 or $x['version']==2 or $x['version']==3 or $x['version']==100 or $x['version']==101 or $x['version']==102 or $x['version']==103) {
             if ($Account->public_key_alive_from_public($x['public_key'])==false) {  return false;   }
         }
         $src=$Account->get_address_from_public_key($x['public_key']);
-        //黑名单屏蔽付款方
+        //blacklist
         if (blacklist::checkPublicKey($x['public_key']) || blacklist::checkAddress($src)) {
             $this->log('check public key and address blacklist [false]');
             return false;
@@ -104,7 +104,6 @@ class Mempoolinc extends base{
 
         
         /////////////switch
-        //其他判断
         $res_account_from=$sql->select('acc','*',1,array("public_key='".$x['public_key']."'"),'',1);
         switch ($x['version']) {
             case 0:
@@ -299,42 +298,58 @@ class Mempoolinc extends base{
     // returns X  transactions from mempool
     public function get_mempool_transaction_for_news($height,$max){
         $sql=OriginSql::getInstance();
-        $transactions = [];
+        
         $this->log('returns X  transactions from mempool');
-        $res=$sql->select('mem','*',0,array('height<='.$height),'fee/val DESC',0);
+        $res=$sql->select('mem','*',0,array('height<='.$height),'height ASC',0);
+        if ($res===false) {
+            return false;
+        }
+
         //$res=$sql->select('mem','*',0,array('height<='.$height),'',$max + 50);
+        $transactions = [];
         if ($res) {
             $balance = [];
             $transaction=Transactioninc::getInstance();
             $Account=Accountinc::getInstance();
+
             foreach ($res as $x) {
                 if (empty($x['public_key'])) {
+                    $this->log('returns X  public_key is empty');
                     continue;
                 }
+
                 if (!isset($balance[$x['public_key']])) {
                     $balance[$x['public_key']]=0;
                 }
-  
+
                 $balance[$x['public_key']] = $balance[$x['public_key']]+$x['val'] + $x['fee'];
 
                 $res=$transaction->get_id_istrue_from_id($x['id']);
+
                 if ($res==true) {
                     $sql->delete('mem',array("id='".$x['id']."'"));
                     continue; //duplicate transaction
                 }
 
                 $res = $Account->get_balance_from_public_key($x['public_key']);
+
                 if (!$res or $res<=0) {
+                    $this->log('get_balance_from_public_key is 0 or fail');
                     continue;
                 }
+
                 if ($res and ($res-$balance[$x['public_key']]<0)) {
+                    $this->log('get_balance_from_public_key balance is 0');
                     continue;
                 }
+
                 $transactions[] = $x;
                 if (count($transactions)>=$max) {
                     break;
                 }
+
             }
+
             if (count($transactions)>$max) {
                 $need_del=count($transactions)-$max;
                 for ($i=0; $i < $need_del; $i++) { 
@@ -377,26 +392,28 @@ class Mempoolinc extends base{
     }
     // sign a transaction
     public function signature($dst,$val,$fee,$version,$message,$date,$public_key, $private_key){
+        $val=number_format($val, 8, '.', '');
+        $fee=number_format($fee, 8, '.', '');
         $info = "{$dst}-{$val}-{$fee}-{$version}-{$message}-{$date}-{$public_key}";
-        
         $signature = ec_sign($info, $private_key);
-
         return $signature;
     }
     // checks the ecdsa secp256k1 signature for a specific public key
     public function check_signature($dst,$val,$fee,$version,$message,$date,$public_key, $signature){
-
+        $val=number_format($val, 8, '.', '');
+        $fee=number_format($fee, 8, '.', '');
         return ec_verify("{$dst}-{$val}-{$fee}-{$version}-{$message}-{$date}-{$public_key}", $signature, $public_key);
     }
     //ok
     public function hasha($dst,$val,$fee,$signature,$version,$message,$date,$public_key){
+        $val=number_format($val, 8, '.', '');
+        $fee=number_format($fee, 8, '.', '');
         $info = $dst."-".$val."-".$fee."-".$signature."-".$version."-".$message."-".$date."-".$public_key;
-
         $hash = hash("sha512", $info);
         return hex2coin($hash);
     }
 
-    //删除多少天以前的事务
+    //del than days
     public function delete_than_days($days){
         $timee=time()-($days*3600*24);
         $sql=OriginSql::getInstance();
@@ -410,7 +427,7 @@ class Mempoolinc extends base{
         }
     }
 
-    //计算支出
+    //get val+fee
     public function get_valfee_from_public_key($public_key){
         $sql=OriginSql::getInstance();
         $this->log('get mempool val+fee');

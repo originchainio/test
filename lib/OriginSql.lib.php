@@ -126,9 +126,9 @@ class OriginSql{
     	$db=MainSQLpdo::getInstance();
         $db->commit();
     }
-    public function lock_tables($tables='blocks,accounts,transactions,mempool,masternode,peers,config',$model='WRITE'){
+    public function lock_tables($tables='blocks,accounts,transactions,mempool,masternode,peers',$model='WRITE'){
     	if ($tables==='') {
-    		$tables='blocks,accounts,transactions,mempool,masternode,peers,config';
+    		$tables='blocks,accounts,transactions,mempool,masternode,peers';
     	}
     	if ($model==='') {
     		$model='WRITE';

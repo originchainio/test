@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190128 test
+// version: 20190216 test
 class Transactioninc extends base{
     private static $_instance = null;
     function __construct(){
@@ -356,6 +356,7 @@ class Transactioninc extends base{
                 return false;
             }
         }
+        $this->log("check mem version:".$x['version']." id:".$hash);
         //height
         if ($x['height']<2) { return false;   }
         //dst
@@ -413,7 +414,7 @@ class Transactioninc extends base{
 
         //block
 
-        //注册账号
+        //register account
         $res=$Account->check_acc_pub_update_DB($x['public_key'],'',$x['block']);
         if (!$res) {
             $this->log("regedit account is failed");
@@ -424,17 +425,17 @@ class Transactioninc extends base{
         }
 
         if ($x['version']==1) {
-            $res_account_to=$sql->select('acc','*',1,array("id='".$x['dst']."'"),'',1);
-            if (!$res_account_to or count($res_account_to)!=1) {
-                $this->log("dst failed");
-                return false;
-            }
+            // $res_account_to=$sql->select('acc','*',1,array("id='".$x['dst']."'"),'',1);
+            // if (!$res_account_to or count($res_account_to)!=1) {
+            //     $this->log("dst failed");
+            //     return false;
+            // }
         }elseif($x['version']==2){
-            $res_account_to=$sql->select('acc','*',1,array("alias='".san(strtolower($x['dst']))."'"),'',1);
-            if (!$res_account_to or count($res_account_to)!=1) {
-                $this->log("alias failed");
-                return false;
-            }
+            // $res_account_to=$sql->select('acc','*',1,array("alias='".san(strtolower($x['dst']))."'"),'',1);
+            // if (!$res_account_to or count($res_account_to)!=1) {
+            //     $this->log("alias failed");
+            //     return false;
+            // }
         } 
 
         //其他判断
@@ -643,9 +644,12 @@ class Transactioninc extends base{
                 return false;
              }
         }
-        // make sure it's not already in mempool
-        $res = $sql->select('mem','*',2,array("id='".$x['id']."'"),'',1);
-        if ($res!=0) {  $this->log("mem failed");   return false; }
+        // make sure  in mempool
+        if ($x['version']==1 or $x['version']==2 or $x['version']==3 or $x['version']==100 or $x['version']==103) {
+            $res = $sql->select('mem','*',2,array("id='".$x['id']."'"),'',1);
+            if (!$res) {  $this->log("select mem failed version:".$x['version'].' id:'.$x['id']);   return false; }
+        }
+
         // make sure the transaction is not already on the blockchain
         $res = $sql->select('trx','*',2,array("id='".$x['id']."'"),'',1);
         if ($res!=0) {  $this->log("trx failed");   return false; }
@@ -654,22 +658,24 @@ class Transactioninc extends base{
     }
     // sign a transaction
     public function signature($dst,$val,$fee,$version,$message,$date,$public_key, $private_key){
+        $val=number_format($val, 8, '.', '');
+        $fee=number_format($fee, 8, '.', '');
         $info = "{$dst}-{$val}-{$fee}-{$version}-{$message}-{$date}-{$public_key}";
-        
         $signature = ec_sign($info, $private_key);
-
         return $signature;
     }
     // checks the ecdsa secp256k1 signature for a specific public key
     public function check_signature($dst,$val,$fee,$version,$message,$date,$public_key, $signature){
-
+        $val=number_format($val, 8, '.', '');
+        $fee=number_format($fee, 8, '.', '');
         return ec_verify("{$dst}-{$val}-{$fee}-{$version}-{$message}-{$date}-{$public_key}", $signature, $public_key);
     }
     // hash the transaction's most important fields and create the transaction ID
     // hash字段创建 transaction ID
     public function hasha($dst,$val,$fee,$signature,$version,$message,$date,$public_key){
+        $val=number_format($val, 8, '.', '');
+        $fee=number_format($fee, 8, '.', '');
         $info = $dst."-".$val."-".$fee."-".$signature."-".$version."-".$message."-".$date."-".$public_key;
-
         $hash = hash("sha512", $info);
         return hex2coin($hash);
     }
