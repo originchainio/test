@@ -28,7 +28,9 @@ class sync extends base{
 	}
 
 	private function check_lock(){
-		if (cache::get('sync_lock')!='unlock') {
+		$res=cache::get('sync_lock');
+		if ($res=='lock') {
+			$this->log('sync____lock');
 			die("Sync lock\n");
 		}
 	}
@@ -46,20 +48,14 @@ class sync extends base{
 		$this->check_lock();
 		//set new lock
 		$this->set_new_lock();
-		echo "Sleeping for 3 seconds\n";
-		sleep(3);
 		$this->log("Starting sync");
-
-		// update the last time sanity ran, to set the execution of the next run
-		$Configinc=Configinc::getInstance();
-		$Configinc->settime();
 
 		$peer=Peerinc::getInstance();
 		$block = Blockinc::getInstance();
 		$transaction = Transactioninc::getInstance();
 		$mempool = Mempoolinc::getInstance();
-		$config=Configinc::getInstance();
 		$sec=Security::getInstance();
+		$sql=OriginSql::getInstance();
 		// checking peers
 
 		// delete the dead peers
@@ -78,119 +74,248 @@ class sync extends base{
 			$peer->get_more_peer($r,$needpeernum);
 		}
 
-		//get more peer end
-		//contact all start
-		$peer_block=[];
-		$active_peers=[];
-		$most_common_id = "";
-		$most_common_num = 0;
-		$largest_height=1;
+
 		///////////////////////////Get the most reasonable maximum height of common blocks
 		$current = $block->current();
 		$r=$peer->get_peer_max($this->config['max_peer']);
-		foreach ($r as $value) {
+
+
+		$max_height=0;
+		$record_p=[];
+		$most_comm_peer=[];
+		$most_comm_num=[];
+		
+		foreach ($r as $key => $value) {
+			echo 'loop peer:'.$key.'  '.$value['hostname']."\n";
+			//get data
 			$data = $peer->peer_post($value['hostname']."/peer.php?q=currentBlock", [], 5);
-			// set fails
-			if ($data === false) {
+
+			//set fails
+			if ($data==false) {
 				$peer->update_peer_fails($value['hostname'],$value['fails']+1);
 				continue;
 			}else{
-				if ($value['fails']!=0) {
-					$peer->update_peer_fails($value['hostname'],0);
+				if (($value['fails']-1)>0) {
+					$peer->update_peer_fails($value['hostname'],$value['fails']-1);
+				}
+			}
+			//set fails end
+			//
+			if (isset($data['from_host'])) {
+				$from_host=$data['from_host'];
+			}else{
+				continue;
+			}
+			$data_block=$data['data'];
+			$data_trx=$data['trx_data'];
+			$miner_public_key=$data['miner_public_key'];
+			$miner_reward_signature=$data['miner_reward_signature'];
+			$mn_public_key=$data['mn_public_key'];
+			$mn_reward_signature=$data['mn_reward_signature'];
+
+			//sec
+			$data_block['id'] = $sec->field('san',$data_block['id']);
+			$data_block['height'] = $sec->field('num',$data_block['height']);
+
+			//set stuckfail
+			if ($data_block['height']<$current['height']) {
+				if (($current['height']-$data_block['height'])>=500) {
+					$peer->update_peer_stuckfail($value['hostname'],($value['stuckfail']+1),time()+7200);
+				}
+				continue;
+			}else{
+				if (($value['stuckfail']-1)>0) {
+					$peer->update_peer_stuckfail($value['hostname'],($value['stuckfail']-1),'');
 				}
 			}
 			//
-			$data=$data['data'];
+			//active peer
+			$active_peer = array('alike' => [], 'high'=>[]);
+			if ($data_block['height']==$current['height']) {
+				$active_peer['alike'][]=$value['hostname'];
+			}elseif ($data_block['height']>$current['height']) {
+				$active_peer['high'][]=$value['hostname'];
+			}
+			//
+			//record height hash and peer
+			if (!isset($most_comm_num[$data_block['id']])) {
+				$most_comm_num[$data_block['id']]=0;
+			}
+			if (!isset($most_comm_peer[$data_block['id']])) {
+				$most_comm_peer[$data_block['id']]=[];
+			}
+			$most_comm_num[$data_block['id']]++;
+			$most_comm_peer[$data_block['id']][]=$value['hostname'];
 
-			$data['id'] = $sec->field('san',$data['id']);
-			$data['height'] = $sec->field('num',$data['height']);
-
-		    //Contrast height setting stuckfail
-		    if ($data['height'] < $current['height'] - 500) {
-		    	$peer->update_peer_stuckfail($value['hostname'],$value['stuckfail']+1,time()+7200);
-		        continue;
-		    } else {
-				if ($value['stuckfail']!=0) {
-					$peer->update_peer_stuckfail($value['hostname'],0,'');
+			//
+			if (!isset($record_p[$data_block['height']])) {
+				$record_p[$data_block['height']][]=array(
+								'hash' => $data_block['id'],
+								'diff'=>$data_block['difficulty'],
+								'trx_numbet'=>count($data_trx),
+								'peer'=>[$value['hostname']],
+								'peer_number'=>1
+								);
+			}else{
+				$is_t=false;
+				foreach ($record_p[$data_block['height']] as $keyy=>$valuee) {
+					if ($valuee['hash']==$data_block['id']) {
+						$record_p[$data_block['height']][$keyy]['peer_number']++;
+						$record_p[$data_block['height']][$keyy]['peer'][]=$value['hostname'];
+						$is_t=true;
+						break;
+					}
 				}
-		    }
-		    //Join the active peer list
-		    $active_peers[]=$value;
+				if ($is_t==false) {
+					$record_p[$data_block['height']][]=array(
+						'hash' => $data_block['id'],
+						'diff'=>$data_block['difficulty'],
+						'trx_numbet'=>count($data_trx),
+						'peer'=>[$value['hostname']],
+						'peer_number'=>1
+					);
+				}
 
-		    $peer_block['peer'][$data['id']][] = $value['hostname'];
+			}
+			//max height
 
-		    if (!isset($peer_block['count'][$data['id']])) {
-		    	$peer_block['count'][$data['id']]=0;
-		    }
-		    $peer_block['count'][$data['id']]++;
+			if ($data_block['height']>$max_height) {
+				$max_height=$data_block['height'];
+				
+			}
+		}
+		//loop screen block
+		$bblock=array(	'hash' => '',
+						'diff'=>0,
+						'trx_numbet'=>0,
+						'peer'=>[],
+						'peer_number'=>0);
 
-		    $peer_block['data'][$data['id']] = $data;
+		foreach ($record_p[$max_height] as $key => $value) {
+			if ($value['peer_number']>$bblock['peer_number']) {
+				$bblock['hash']=$value['hash'];
+				$bblock['diff']=$value['diff'];
+				$bblock['trx_numbet']=$value['trx_numbet'];
+				$bblock['peer']=$value['peer'];
+				$bblock['peer_number']=$value['peer_number'];
+			}
 
-		    //peer common 
-		    if ($peer_block['count'][$data['id']] > $most_common_num) {
-		        $most_common_id = $data['id'];
-		        $most_common_num = $peer_block['count'][$data['id']];
-		    }
-		    //peer max height
-		    if ($data['height'] > $largest_height) {
-		        $largest_height = $data['height'];
-		        $largest_height_block = $data['id'];  	
-		    }elseif($data['height'] == $largest_height && $data['id'] != $largest_height_block){
-
-		    	if ($data['difficulty'] == $peer_block['data'][$largest_height_block]['difficulty']) {
-		            //diff identical
-		            if ($most_common_id == $data['id']) {
-		                $largest_height = $data['height'];
-		                $largest_height_block = $data['id'];
-		            } else {
-		            	
-		                $no1 = hexdec(substr(coin2hex($largest_height_block), 0, 12));
-		                $no2 = hexdec(substr(coin2hex($data['id']), 0, 12));
-		                if (gmp_cmp($no1, $no2) == 1) {
-		                    $largest_height = $data['height'];
-		                    $largest_height_block = $data['id'];
-		                }
-		            }
-
-		    	}elseif($data['difficulty'] < $peer_block['data'][$largest_height_block]['difficulty']){
-		            //diff min
-		            $largest_height = $data['height'];
-		            $largest_height_block = $data['id'];	
-		    	}
-		    }
-
+			if ($value['peer_number']==$bblock['peer_number'] and $value['diff']<$bblock['diff']) {
+				$bblock['hash']=$value['hash'];
+				$bblock['diff']=$value['diff'];
+				$bblock['trx_numbet']=$value['trx_numbet'];
+				$bblock['peer']=$value['peer'];
+				$bblock['peer_number']=$value['peer_number'];
+			}
+			if ($value['peer_number']==$bblock['peer_number'] and $value['diff']==$bblock['diff'] and $value['trx_numbet']>$bblock['trx_numbet']) {
+				$bblock['hash']=$value['hash'];
+				$bblock['diff']=$value['diff'];
+				$bblock['trx_numbet']=$value['trx_numbet'];
+				$bblock['peer']=$value['peer'];
+				$bblock['peer_number']=$value['peer_number'];
+			}
 		}
 
-		cache::set('bestblockhash',$most_common_id,0);
-		//////////////////////////////////
-		//contact all end
-		echo "Most common bock: $most_common_id\n";
-		echo "Most common num: $most_common_num\n";
-		echo "Max height: $largest_height\n";
-		echo "Current block height: $current[height]\n";
+		// $most_comm_num[$data_block['hash']]++;
+		// $most_comm_peer[$data_block['hash']][]=$value['hostname'];
+		$ii=0;	$most_comm_hash='';
+		foreach ($most_comm_num as $key => $value) {
+			if ($value>$ii) {
+				$ii=$value;
+				$most_comm_hash=$key;
+			}
+		}
+		$most_comm_hash_peer=$most_comm_peer[$most_comm_hash];
 
-		$block_parse_failed=false;
-		//if no max height
-		if ($current['height'] < $largest_height && $largest_height > 1) {
-			//sync
-			$block_parse_failed=$this->current2largest($peer_block['peer'][$largest_height_block],$largest_height,$largest_height_block,$most_common_id,$most_common_num,count($active_peers));
-
-			$current=$block->current();
-			cache::set('sync_synchronization_time',time(),0);
+		echo 'current height:'.$current['height']."\n";
+		echo 'Max height:'.$max_height."\n";
+		echo 'Max hash:'.$bblock['hash']."\n";
+		echo 'Most hash:'.$most_comm_hash."\n";
+		//start sync
+		cache::set('sync_synchronization_time',time(),0);
+		if ($max_height==$current['height']) {
+			echo 'No synchronization required';
+			$this->un_lock();
+			exit;
 		}
 		//
+		cache::set('bestblockhash',$most_comm_hash,0);
+
+		foreach ($bblock['peer'] as $value) {
+			$current=$block->current();
+			$star_height=$current['height']+1;
+			$end_height=$max_height;
+			for ($i=$star_height; $i <= $end_height; $i++) { 
+				$data =$peer->peer_post($value."/peer.php?q=getBlock", ["height" => $i],60);
+				echo 'get height start:'.($i)."\n";
+				if ($data === false) {
+					echo 'get block fails height:'.$data['data']['height']."\n";
+					break;
+				}
+
+	            if (!$block->mine(
+	                $data['miner_public_key'],
+	                $data['data']['nonce'],
+	                $data['data']['argon'],
+	                $data['data']['difficulty'],
+	                $current['id'],
+	                $current['height'],
+	                $data['data']['date']
+	            )) {
+	            	echo 'check miner fails height:'.$data['data']['height']."\n";
+	                break;
+	            }
+				//check block
+				if ($block->check($data)==false) {
+					echo 'check fails height:'.$data['data']['height']."\n";
+					break;
+				}
+
+				//check trx
+				foreach ($data['trx_data'] as $valueee) {
+					if ($valueee['height']!=$data['data']['height']) {
+						echo 'check trx height fails height:'.$data['data']['height']."\n";
+						break 2;
+					}
+					if ($valueee['block']!=$data['data']['id']) {
+						echo 'check trx id fails height:'.$data['data']['height']."\n";
+						break 2;
+					}
+					if ($transaction->check($valueee)==false) {
+						echo 'check trx check fails height:'.$data['data']['height']."\n";
+						break 2;
+					}
+				}
+				// add block;
+				echo "add block ".$data['data']['height']."\n";
+		        $sql->add('block',array(
+	                                    'id'=>$data['data']['id'],
+	                                    'generator'=>$data['data']['generator'],
+	                                    'height'=>$data['data']['height'],
+	                                    'date'=>$data['data']['date'],
+	                                    'nonce'=>$data['data']['nonce'],
+	                                    'signature'=>$data['data']['signature'],
+	                                    'difficulty'=>$data['data']['difficulty'],
+	                                    'argon'=>$data['data']['argon'],
+	                                    'transactions'=>$data['data']['transactions']
+		        ));
+				foreach ($data['trx_data'] as $valueee) {
+					$transaction->add_transactions_delete_mempool_from_block($valueee['id'],$valueee['public_key'],$data['data']['id'],$valueee['height'],$valueee['dst'],$valueee['val'],$valueee['fee'],$valueee['signature'],$valueee['version'],$valueee['message'],$valueee['date']);
+				}
+					//
+				cache::set('sync_last_time',time(),0);
+			}
+		}
 
 		// deleting mempool transactions older than 10 days
 		$mempool->delete_than_days(10);
 
-		$Security=Security::getInstance();
-		$sql=OriginSql::getInstance();
 		//re send local mem
 		$res=$sql->select('mem','id',0,array("peer='local'"),'height asc',120);
 		$this->log('rebroadcast locals mempool');
 		foreach ($res as $key => $value) {
 			$sql->update('mem',array('height'=>$current['height']),array("id='".$value['id']."'"));
-	        $cmd=$Security->cmd($this->config['php_path'].'php send.php',['transaction',$value['id']]);
+	        $cmd=$sec->cmd($this->config['php_path'].'php send.php',['transaction',$value['id']]);
 	        system($cmd);
 		}
 		//re send no local mem
@@ -198,7 +323,7 @@ class sync extends base{
 		$this->log('rebroadcast peer mempool');
 		foreach ($res as $key => $value) {
 			$sql->update('mem',array('height'=>$current['height']),array("id='".$value['id']."'"));
-	        $cmd=$Security->cmd($this->config['php_path'].'php send.php',['transaction',$value['id']]);
+	        $cmd=$sec->cmd($this->config['php_path'].'php send.php',['transaction',$value['id']]);
 	        system($cmd);
 		}
 
@@ -210,186 +335,15 @@ class sync extends base{
 
 		//recheck the last blocks
 		$this->log("Rechecking blocks");
-		cache::set('sync_last_time',time(),0);
+		
 		echo "All checked blocks are ok\n";
 		$this->log("Finishing sanity");
 
 		$this->un_lock();
 	}
 
-	// if no last height
-	private function current2largest($peers,$largest_height,$largest_height_block,$most_common_id,$most_common_num,$total_active_peers){
-		$sec=Security::getInstance();
-		$peer=Peerinc::getInstance();
-		//check local end block
-		$block=Blockinc::getInstance();
-		$current=$block->current();
-		$transaction=Transactioninc::getInstance();
-
-		foreach ($peers as $value) {
-			//
-			echo 'peer:'.$value."\n";
-			$data = $peer->peer_post($value."/peer.php?q=getBlock", ["height" => $current['height']], 60);
-			//echo_array($data);
-
-			if ($data === false) {	continue;	}
-			$data=$data['data'];
-			$data['id'] = $sec->field('san',$data['id']);
-			$data['height'] = $sec->field('num',$data['height']);
-
-			echo 'get data:'.$data['height']."\n";
-        	if ($data['id'] != $current['id'] && $data['id'] == $most_common_id && ($most_common_num / $total_active_peers) > 0.90) {
-        		//如果已经是常见块 但是和我们数据库中的id不一样
-        		$block->delete($current['height'] - 3);
-        		$current = $block->current();
-        		$data = $peer->peer_post($value."/peer.php?q=getBlock", ["height" => $current['height']]);
-	            if ($data === false) {break;}
-				$data=$data['data'];
-				$data['id'] = $sec->field('san',$data['id']);
-				$data['height'] = $sec->field('num',$data['height']);
-
-        	}elseif($data['id'] != $current['id'] && $data['id'] != $most_common_id){
-        		$invalid = false;
-        		$last_good = $current['height'];
-	            for ($i = $current['height'] - 30; $i < $current['height']; $i++) {
-	                $data = $peer->peer_post($value."/peer.php?q=getBlock", ["height" => $i]);
-	                if ($data === false) {	$invalid = true;	break;	}
-					$data=$data['data'];
-					$data['id'] = $sec->field('san',$data['id']);
-					$data['height'] = $sec->field('num',$data['height']);
-
-
-	                $ext = $block->get_block_from_height($i);
-	                if ($i == $current['height'] - 30 && $ext['id'] != $data['id']) {
-	                    $invalid = true;
-	                    break;
-	                }
-
-	                if ($ext['id'] == $data['id']) {
-	                    $last_good = $i;
-	                }
-	            }
-	            if ($last_good==$current['height']-1) {
-	            	$block->pop(1);
-	            }
-	            if ($invalid == false) {
-	                $cblock = [];
-	                for ($i = $last_good; $i <= $largest_height; $i++) {
-	                    $data = $peer->peer_post($value."/peer.php?q=getBlock", ["height" => $i]);
-	                    if ($data === false) {
-	                        $invalid = true;
-	                        break;
-	                    }
-						// $data=$data['data'];
-						// $data['id'] = $sec->field('san',$data['id']);
-						// $data['height'] = $sec->field('num',$data['height']);
-
-	                    $cblock[$i] = $data;
-	                }
-	                // check if the block mining data is correct
-	                for ($i = $last_good + 1; $i <= $largest_height; $i++) {
-	                    if (!$block->mine(
-	                        $cblock[$i]['miner_public_key'],
-	                        $cblock[$i]['data']['nonce'],
-	                        $cblock[$i]['data']['argon'],
-	                        $cblock[$i]['data']['difficulty'],
-	                        $cblock[$i - 1]['data']['id'],
-	                        $cblock[$i - 1]['data']['height'],
-	                        $cblock[$i]['data']['date']
-	                    )) {
-	                        $invalid = true;
-	                        break;
-	                    }
-	                }
-		            // if the blockchain proves ok, delete until the last block
-		            if ($invalid == false) {
-		            	echo "Changing fork, deleting $last_good"."\n";
-		                $this->log("Changing fork, deleting $last_good", 1);
-		                $block->delete($last_good);
-		                $current = $block->current();
-		                $data = $current;
-		            }
-	            }
-
-        	}
-	        // if current still doesn't match the data, something went wrong
-	        if ($data['id'] != $current['id']) {
-	            continue;
-	        }
-
-		}
-
-		//while peer sync blocks
-
-		while ($current['height']<$largest_height) {
-
-			foreach ($peers as $value) {
-				//要重新获取本机块
-				$current=$block->current();
-				$data =$peer->peer_post($value."/peer.php?q=getBlocks", ["height" => $current['height']+1],60);
-				//echo_array($data);
-				echo 'get height start:'.($current['height']+1)."\n";
-
-				//获取失败
-				if ($data === false) {
-					// $peer->update_peer_fails($value,$value['fails']+1);
-					continue;
-				}
-				$sql=OriginSql::getInstance();
-				foreach ($data as $valuee) {
-					if ($valuee['data']['height']<=$current['height']) {
-						continue;
-					}
-
-					//check block
-					if ($block->check($valuee)==false) {
-						break;
-					}
-					//check trx
-					foreach ($valuee['trx_data'] as $valueee) {
-						if ($valueee['height']!=$valuee['data']['height']) {
-							break 2;
-						}
-						if ($valueee['block']!=$valuee['data']['id']) {
-							break 2;
-						}
-						if ($transaction->check($valueee)==false) {
-							break 2;
-						}
-					}
-					// add block;
-					echo "add block ".$valuee['data']['height']."\n";
-			        $sql->add('block',array(
-		                                    'id'=>$valuee['data']['id'],
-		                                    'generator'=>$valuee['data']['generator'],
-		                                    'height'=>$valuee['data']['height'],
-		                                    'date'=>$valuee['data']['date'],
-		                                    'nonce'=>$valuee['data']['nonce'],
-		                                    'signature'=>$valuee['data']['signature'],
-		                                    'difficulty'=>$valuee['data']['difficulty'],
-		                                    'argon'=>$valuee['data']['argon'],
-		                                    'transactions'=>$valuee['data']['transactions']
-			        ));
-					foreach ($valuee['trx_data'] as $valueee) {
-						$transaction->add_transactions_delete_mempool_from_block($valueee['id'],$valueee['public_key'],$valuee['data']['id'],$valueee['height'],$valueee['dst'],$valueee['val'],$valueee['fee'],$valueee['signature'],$valueee['version'],$valueee['message'],$valueee['date']);
-					}
-
-					///////////////
-				}
-			}
-			//
-			sleep(5);
-		}
-		return true;
-	}
-
-
-	public function dev(){
-	    error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE);
-	    ini_set("display_errors", "on");
-	}
-
-
+	// The Microrectification code comes from arionum https://github.com/arionum/node
+	// Modify partial logic
 	public function Microrectification($from_host){
 		$block = Blockinc::getInstance();
 		$Peerinc=Peerinc::getInstance();
@@ -464,6 +418,8 @@ class sync extends base{
 	    $this->un_lock();
 	    exit;
 	}
+	// The Microsynchronization code comes from arionum https://github.com/arionum/node
+	// Modify partial logic
 	public function Microsynchronization($from_host,$end_height){
 		$block = Blockinc::getInstance();
 		$Peerinc=Peerinc::getInstance();
@@ -479,6 +435,7 @@ class sync extends base{
 		for ($i=$start; $i < $end; $i++) { 
 
 			$data = $Peerinc->peer_post($from_host."/peer.php?q=getBlock",["height" => $i]);
+			//echo_array($data);
 	        if (!$data) {
 	        	$this->log("Invalid getBlock result");
 	            echo "Invalid getBlock result\n";
@@ -551,10 +508,7 @@ if (!isset($argv[1])) {
 	exit;
 }
 $q = trim($argv[1]);
-if ($q=='dev') {
-	$sync->dev();
-	$sync->main();
-}elseif($q=='Microrectification'){
+if($q=='Microrectification'){
 	if (isset($argv[2])) {
 		$from_host=trim($argv[2]);
 	}else{
@@ -574,7 +528,5 @@ if ($q=='dev') {
 	}	
 	$sync->Microsynchronization($from_host,$end_height);
 }
-
-
 
 ?>

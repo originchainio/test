@@ -518,7 +518,7 @@ class Blockinc extends base{
 
     
 
-
+    // Fork arionum https://github.com/arionum/node
     // check if the arguments are good for mining a specific block
     public function mine($public_key, $nonce, $argon, $difficulty, $block_current_hash, $block_current_height, $time){
 

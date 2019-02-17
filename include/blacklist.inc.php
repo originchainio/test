@@ -1,5 +1,6 @@
 <?php
-// version: 20190115 test
+//Fork from arionum https://github.com/arionum/node
+//add checkalias
 final class Blacklist{
     // The official list of blacklisted public keys
     public const PUBLIC_KEYS = [

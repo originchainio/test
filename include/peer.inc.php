@@ -124,7 +124,7 @@ class Peerinc extends base{
         }
         $sql=OriginSql::getInstance();
 
-        $res=$sql->select('peer','*',0,array("reserve=0","blacklisted<".time()),'',$max);
+        $res=$sql->select('peer','*',0,array("reserve=1","blacklisted<".time()),'',$max);
         if ($res) {
             return $res;
         }else{
@@ -183,7 +183,7 @@ class Peerinc extends base{
             if ($res!=0) {
                 continue;
             }
-            $this->add($value,0,0,0,md5($value),0,0);
+            $this->add($value,0,0,1,md5($value),0,0);
 
             if ($this->config['local_node']==false) {
                 $res = $this->peer_post($value."/peer.php?q=peer", ["hostname" => $this->config['hostname'], "repeer" => 1]);

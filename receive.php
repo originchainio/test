@@ -86,6 +86,7 @@ class receive extends base{
     //Other peer block is sent to me
     public function submitBlock($data,$trx_data,$miner_public_key,$miner_reward_signature,$mn_public_key,$mn_reward_signature,$from_host=''){
         if (cache::get('sync_block')=='lock') {
+            $this->log('receive Sanity lock in place');
             $this->echo_display_json(false,'Sanity lock in place');
             exit;
         }
@@ -94,6 +95,7 @@ class receive extends base{
 
         $block=Blockinc::getInstance();
         $transaction=Transactioninc::getInstance();
+        $Security=Security::getInstance();
         //
         $current = $block->current();
         // block already in the blockchain
@@ -121,32 +123,28 @@ class receive extends base{
                 $accept_new = false;
             }
             
-            if ($accept_new) {
+            if ($accept_new==true) {
                 // if the new block is accepted, run a microsanity to sync it
                 if ($from_host!=='') {
-
-                    $Security=Security::getInstance();
+                    
                     $cmd=$Security->cmd($this->config['php_path'].'php sync.php',['Microrectification',$from_host]);
                     system($cmd);
-                    $this->log('microsanity',1);
-                    $this->echo_display_json(true,'microsanity');
+                    $this->log('Microrectification',1);
+                    $this->echo_display_json(true,'Microrectification');
                 }
                 exit;
             } else {
-                $this->log('reverse-microsanity',1);
-                $this->echo_display_json(true,'reverse-microsanity');// if it's not, suggest to the peer to get the block from us
+                $this->log('reverse-Microrectification',1);
+                $this->echo_display_json(true,'reverse-Microrectification');// if it's not, suggest to the peer to get the block from us
                 exit;
             }
         }
  
         // if the height of the block submitted is lower than our current height, send them our current block
         if ($data['height'] < $current['height'] and $this->config['local_node']==false) {
-            $sql=OriginSql::getInstance();
 
             if ($from_host!=='') {
                 $from_host = san_host($from_host);
-
-                $Security=Security::getInstance();
                 $cmd=$Security->cmd($this->config['php_path'].'php send.php',['block','current',$from_host]);
                 system($cmd);
 
@@ -166,8 +164,6 @@ class receive extends base{
             // request them to send us a microsync with the latest blocks
         if ($data['height']>$current['height'] and $data['height'] - $current['height'] <= 150) {
             if ($from_host!='') {
- 
-                $Security=Security::getInstance();
                 $cmd=$Security->cmd($this->config['php_path'].'php sync.php',['Microsynchronization',$from_host,$data['height']]);
                 $this->log($cmd);
                 system($cmd);
@@ -176,47 +172,6 @@ class receive extends base{
                 // exit;
             }
         }
-        // // check block data
-        // if (!$block->check(['data'=>$data,'trx_data'=>$trx_data,'miner_public_key'=>$miner_public_key,'miner_reward_signature'=>$miner_reward_signature,'mn_public_key'=>$mn_public_key,'mn_reward_signature'=>$mn_reward_signature])) {
-        //     $this->log('check-false-invalid-block',1);
-        //     $this->echo_display_json(false,'check-false-invalid-block');
-        //     exit;
-        // }
-
-        // //check trx
-        // foreach ($trx_data as $valueee) {
-        //     if ($valueee['height']!=$data['height']) {
-        //         $this->log('check trx height is false',1);
-        //         $this->echo_display_json(false,'check trx height is false');
-        //         exit;
-        //     }
-        //     if ($valueee['block']!=$data['id']) {
-        //         $this->log('check trx block is false',1);
-        //         $this->echo_display_json(false,'check trx block is false');
-        //         exit;
-        //     }
-        // }
-
-
-        // // add the block to the blockchain
-        // $res = $block->add(
-        //     $miner_public_key,
-        //     $data['height'],
-        //     $data['nonce'],
-        //     $trx_data,
-        //     $data['date'],
-        //     $data['difficulty'],
-        //     $data['signature'],
-        //     $miner_reward_signature,
-        //     $mn_reward_signature,
-        //     $data['argon']
-        //     );
-
-        // if (!$res) {
-        //     $this->log('invalid-block-data',1);
-        //     $this->echo_display_json(false,'invalid-block-data');
-        //     exit;
-        // }
         // send it to all our peers
         if ($this->config['local_node']==false) {
             $Security=Security::getInstance();

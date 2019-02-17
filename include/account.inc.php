@@ -92,7 +92,7 @@ class Accountinc extends base{
         }
     }
 
-    // generates Account's address from the public key
+    // get Account's address from the public key
     public function get_address_from_public_key($public_key){
         $public_key=san($public_key);
         for ($i = 0; $i < 9; $i++) {
@@ -106,6 +106,7 @@ class Accountinc extends base{
         } 
     }
     // Generate a new account
+    // The account algorithm comes from arionum https://github.com/arionum/node
     public function generate_account(){
         $res=$this->generate_account_s();
         if ($res) {

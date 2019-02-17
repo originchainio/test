@@ -102,6 +102,7 @@ class base
         $hostname = (!empty($_SERVER['HTTPS']) ? 'https' : 'http') . "://" . san_host($_SERVER['HTTP_HOST']);
         return $hostname;
     }
+    // The log code comes from arionum https://github.com/arionum/node
     public function log($data, $verbosity = 0){
         if ($verbosity==='') {
             $verbosity = 0;
