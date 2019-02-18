@@ -2,7 +2,7 @@
 /**
  * 
  */
-// version: 20190211 test
+// version: 20190218 test
 class Blockchain extends base{
 	private static $_instance = null;
 
@@ -18,10 +18,31 @@ class Blockchain extends base{
     }
 
 	public function getbestblockhash($mode='all'){
+	// Array
+	// (
+	//     [result] => 5H4r7QUZux....
+	//     [error] =>
+	// )
 		return array('result' => cache::get('bestblockhash'), 'error'=>'');
 	}
 
 	public function getblock($mode='all',$blockhash){
+	// Array
+	// (
+	//     [result] => Array
+	//         (
+	//             [id] => 2TZP5uoD9fovgNoxv...
+	//             [generator] => 2j7bgeD9vZDsg....
+	//             [height] => 499
+	//             [date] => 1550483746
+	//             [nonce] => 5jL9z4yHaOn8jeijv4j...
+	//             [signature] => iKx1CJNN3veGyEcniuv7g395Pc...
+	//             [difficulty] => 1360222505684
+	//             [argon] => $MVdqS1dTRFVkZDZQdUlo...
+	//             [transactions] => 1
+	//         )
+	//     [error] =>
+	// )
 		$sql=OriginSql::getInstance();
 		$res=$sql->select('blocks','*',1,array("id='".$blockhash."'"),'',1);
 		if ($res) {
@@ -32,6 +53,23 @@ class Blockchain extends base{
 	}
 
 	public function getblockchaininfo($mode='all'){
+	// Array
+	// (
+	//     [result] => Array
+	//         (
+	//             [id] => 3BXTRtucboPM...
+	//             [generator] => 2j7bgeD9vZDsgG5z9vJEZ...
+	//             [height] => 529
+	//             [date] => 1550492210
+	//             [nonce] => umMGjm601x...
+	//             [signature] => AN1rKqnXTwfyywc5UZdM8n...
+	//             [difficulty] => 1085944455421
+	//             [argon] => $TlEzbk5ocnRoNkZ...
+	//             [transactions] => 1
+	//         )
+
+	//     [error] =>
+	// )
 		$sql=OriginSql::getInstance();
 		$res=$sql->select('blocks','*',1,array(),'height DESC',1);
 		if ($res) {
@@ -42,6 +80,11 @@ class Blockchain extends base{
 	}	
 
 	public function getblockcount($mode='all'){
+	// Array
+	// (
+	//     [result] => 529
+	//     [error] =>
+	// )
 		$sql=OriginSql::getInstance();
 		$res=$sql->select('blocks','height',1,array(),'height DESC',1);
 		if ($res) {
@@ -51,6 +94,11 @@ class Blockchain extends base{
 		}
 	}	
 	public function getblockhash($mode='all',$height){
+	// Array
+	// (
+	//     [result] => 3eXGYv8J3fhfgcT1owH5aHgDZc...
+	//     [error] =>
+	// )
 		$sql=OriginSql::getInstance();
 		$res=$sql->select('blocks','id',1,array("height=".$height),'',1);
 		if ($res) {
@@ -60,6 +108,23 @@ class Blockchain extends base{
 		}
 	}
 	public function getblockstats($mode='all',$hash_or_height){
+	// Array
+	// (
+	//     [result] => Array
+	//         (
+	//             [avgfee] => 0
+	//             [blockhash] => 3eXGYv8J3fhfgcT1owH5aHgDZcz...
+	//             [height] => 50
+	//             [maxfee] => 0
+	//             [minfee] => 0
+	//             [time] => 1550420005
+	//             [total_out] => 0
+	//             [totalfee] => 0
+	//             [txs] => 1
+	//         )
+
+	//     [error] =>
+	// )
 		$sql=OriginSql::getInstance();
 		if (is_numeric($hash_or_height)) {
 			$res=$sql->select('blocks','*',1,array("height=".$hash_or_height),'',1);
@@ -105,6 +170,25 @@ class Blockchain extends base{
 		return array('result' => $arrayName, 'error'=>'');
 	}
 	public function getchaintips($mode='all'){
+	// Array
+	// (
+	//     [result] => Array
+	//         (
+	//             [0] => Array
+	//                 (
+	//                     [id] => 3BXTRtucboPMkb6RF...
+	//                     [height] => 529
+	//                     [status] => active
+	//                 )
+
+	//             [1] => Array
+	//                 (
+	//                 )
+
+	//         )
+
+	//     [error] =>
+	// )
 		$sql=OriginSql::getInstance();
 		$res=$sql->select('blocks','id,height',1,array(),'height DESC',1);
 		$res['status']='active';
@@ -117,6 +201,11 @@ class Blockchain extends base{
 	}
 
 	public function getdifficulty($mode='all'){
+	// Array
+	// (
+	//     [result] => 9223372036854775800
+	//     [error] =>
+	// )
 		$block=Blockinc::getInstance();
 		$res=$block->get_next_difficulty();
 		if ($res) {
@@ -127,6 +216,25 @@ class Blockchain extends base{
 	}
 
 	public function getmempoolentry($mode='all',$txid){
+	//Array
+	//(
+	//	[result] =>Array
+	//         (
+	//              [id] => 3BXTRtucboPMkb6RF...
+	//              [height] => 
+	//              [dst] => 
+	//              [val] => 
+	//              [fee] => 
+	//            	[signature] => 
+	//            	[version] => 
+	//            	[message] => 
+	//             	[date] => 
+	//				[public_key] => 
+	//				[peer] => 
+	//         )
+	//	[error] => 
+	//)
+
 		$sql=OriginSql::getInstance();
 		$res=$sql->select('mem','*',1,array("id='".$txid."'"),'',1);
 		if ($res) {
@@ -137,29 +245,73 @@ class Blockchain extends base{
 	}
 
 	public function getmempoolsize($mode='all'){
+	// Array
+	// (
+	//     [result] => 33
+	//     [error] => 
+	// )
+
 		$sql=OriginSql::getInstance();
 		$res=$sql->select('mem','*',2,array(),'',0);
-		if ($res) {
-			return array('result' => $res, 'error'=>'');
-		}else{
+
+		if ($res===false) {
 			return array('result' => '', 'error'=>'fail');
+		}else{
+			return array('result' => $res, 'error'=>'');
 		}
 	}
 
 	public function getrawmempool($mode='all'){
+	// Array
+	// (
+	//     [result] => Array
+	//         (
+	//         	3BXTRtucboPMkb6RF...,
+	//         	asdw22ucboPMkb6RF...,
+	//         	...
+	//         )
+
+	//     [error] =>
+	// )
 		$sql=OriginSql::getInstance();
 		$res=$sql->select('mem','id',0,array(),'',0);
-		if ($res) {
-			return array('result' => $res, 'error'=>'');
-		}else{
+		if ($res===false) {
 			return array('result' => '', 'error'=>'fail');
+		}else{
+			return array('result' => $res, 'error'=>'');
 		}
 	}
 
 	public function gettxout($mode='all',$txid){
-		return $this->getmempoolentry($txid);
+		return $this->getmempoolentry('all',$txid);
 	}
+
+	//**********This function finds a bug and waits to be fixed ,Tester: Luuhoo
 	public function verifychain($mode='cli',$start_height,$end_height){
+	// error: Array
+	// (
+	//     [result] => Array
+	//         (
+	//             [status] =>
+	//             [error_result] => Array
+	//                 (
+	//                     [height] => Array
+	//                         (
+	//                             [0] => 1
+	//                         )
+
+	//                     [id] => Array
+	//                         (
+	//                             [0] => 5mEVo2RLoEZt4Zn...
+	//                         )
+
+	//                 )
+
+	//         )
+
+	//     [error] =>
+	// )
+
 		if ($mode!=='cli') {
 			return array('result' => '', 'error'=>'fail');
 		}
@@ -233,6 +385,11 @@ class Blockchain extends base{
         ), 'error'=>'');
 	}
 	public function cleanblockchain($mode='cli'){
+	// Array
+	// (
+	//     [result] => ok
+	//     [error] =>
+	// )
 		if ($mode!=='cli') {
 			return array('result' => '', 'error'=>'fail');
 		}
