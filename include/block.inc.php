@@ -329,6 +329,7 @@ class Blockinc extends base{
             return true;
         }
     }
+    // The difficulty algorithm comes from arionum https://github.com/arionum/node
     public function get_next_difficulty($current=[]){
         $sql=OriginSql::getInstance();
 
