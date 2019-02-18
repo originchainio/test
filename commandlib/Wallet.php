@@ -2,7 +2,7 @@
 /**
  * 
  */
-// version: 20190216 test
+// version: 20190218 test
 class Wallet extends base{
 	private static $_instance = null;
 
@@ -17,6 +17,18 @@ class Wallet extends base{
         return self::$_instance;
     }
     public function createwallet($mode='all'){
+    // Array
+    // (
+    //     [result] => Array
+    //         (
+    //             [address] => 3AJ5pAWTjquyUPb3kQ...
+    //             [public_key] => PZ8Tyr4Nx8MHsRAGMpZmZ6TW...
+    //             [private_key] => Lzhp9LopCHgCY3ieb...
+    //         )
+
+    //     [error] =>
+    // )
+
         $Accountinc=Accountinc::getInstance();
         $res=$Accountinc->generate_account();
         if ($res==false) {
@@ -26,6 +38,12 @@ class Wallet extends base{
         }
     }
     public function getpublickeybyaddress($mode='all',$address){
+    //  Array
+    // (
+    //     [result] => PZ8Tyr4Nx8MHsRAGMpZmZ6TWY63dXWSCy...
+    //     [error] =>
+    // )
+
         $Accountinc=Accountinc::getInstance();
         $res=$Accountinc->get_public_key_from_address($address);
         if ($res==false) {
@@ -35,6 +53,12 @@ class Wallet extends base{
         }
     }
     public function getpublickeybyalias($mode='all',$alias){
+    // Array
+    // (
+    //     [result] => PZ8Tyr4Nx8MHs...
+    //     [error] =>
+    // )
+
         $Accountinc=Accountinc::getInstance();
         $res=$Accountinc->get_public_key_from_alias($alias);
         if ($res==false) {
@@ -44,6 +68,12 @@ class Wallet extends base{
         }
     }
     public function getaliasbyaddress($mode='all',$address){
+    // Array
+    // (
+    //     [result] => abc..
+    //     [error] =>
+    // )
+
         $Accountinc=Accountinc::getInstance();
         $res=$Accountinc->get_alias_frome_address($address);
         if ($res==false) {
@@ -53,6 +83,12 @@ class Wallet extends base{
         }
     }
     public function getaliasbypublickey($mode='all',$publickey){
+    // Array
+    // (
+    //     [result] => abc..
+    //     [error] =>
+    // )
+
         $Accountinc=Accountinc::getInstance();
         $res=$Accountinc->get_alias_frome_publickey($publickey);
         if ($res==false) {
@@ -62,6 +98,12 @@ class Wallet extends base{
         }
     }
     public function getaddressesbyalias($mode='all',$alias){
+    // Array
+    // (
+    //     [result] => 2j7bgeD9vZD...
+    //     [error] =>
+    // )
+
         $Accountinc=Accountinc::getInstance();
         $res=$Accountinc->get_address_from_alias($alias);
         if ($res==false) {
@@ -71,10 +113,34 @@ class Wallet extends base{
         }
     }
     public function getaddressesbypublickey($mode='all',$publickey){
+    // Array
+    // (
+    //     [result] => 5WeLmAbqAMQh2...
+    // )
+
         $Accountinc=Accountinc::getInstance();
-        return $Accountinc->get_address_from_publickey($publickey);
+        $res=$Accountinc->get_address_from_public_key($publickey);
+        if ($res==false) {
+            return array('result' => '', 'error'=>'fail');
+        }else{
+            return array('result' => $res, 'error'=>'');
+        }
     }
     public function getaddressinfo($mode='all',$address){
+    // Array
+    // (
+    //     [result] => Array
+    //         (
+    //             [id] => 2j7bgeD9vZDsgG...
+    //             [public_key] => PZ8Tyr4Nx8MHsRAGMpZmZ...
+    //             [block] => 4q6xBX8Bu9zLi...
+    //             [balance] => 55307135.00000000
+    //             [alias] => ppt
+    //         )
+
+    //     [error] =>
+    // )
+
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','*',1,array("id='".$address."'"),'',1);
         if ($res==false) {
@@ -84,6 +150,12 @@ class Wallet extends base{
         }
     }
     public function getbalance($mode='all',$address_or_publickey){
+    // Array
+    // (
+    //     [result] => 55307200.00000000
+    //     [error] =>
+    // )
+
         $Accountinc=Accountinc::getInstance();
         $res=$Accountinc->get_balance_from_address($address_or_publickey);
         if ($res) {
@@ -98,6 +170,20 @@ class Wallet extends base{
     }
 
     public function listlockunspent($mode='all',$publickey){
+    // Array
+    // (
+    //     [result] => Array
+    //         (
+    //             [0] => Array
+    //                 (
+    //                     [id] => 3esXjvHhW8qhycjFtgEJBTdbmP...
+    //                 )
+    //             ......
+    //         )
+
+    //     [error] =>
+    // )
+
         $sql=OriginSql::getInstance();
         $res=$sql->select('mem','id',0,array("public_key='".$publickey."'"),'',0);
         if ($res==false) {
@@ -107,6 +193,12 @@ class Wallet extends base{
         }
     }
     public function sendtoaddress($mode='all',$fromaddress,$toaddress,$privatekey,$amount){
+    // Array
+    // (
+    //     [result] => ok
+    //     [error] =>
+    // )
+
         $block=Blockinc::getInstance();
         $current=$block->current();
         if (!$current) {
@@ -149,6 +241,12 @@ class Wallet extends base{
         }
     }
     public function sendtoalias($mode='all',$fromaddress,$alias,$privatekey,$amount){
+    // Array
+    // (
+    //     [result] => ok
+    //     [error] =>
+    // )
+
         $block=Blockinc::getInstance();
         $current=$block->current();
         if (!$current) {
@@ -191,6 +289,12 @@ class Wallet extends base{
     }
 
     public function checkalias($mode='all',$alias){
+    // Array
+    // (
+    //     [result] => ok
+    //     [error] =>
+    // )
+
         $Accountinc=Accountinc::getInstance();
         $res=$Accountinc->alias_alive_from_alias($alias);
         if ($res==false) {
@@ -199,7 +303,13 @@ class Wallet extends base{
             return array('result' => 'ok', 'error'=>'');
         }
     }
-    public function registalias($mode='all',$fromaddress,$alias){
+    public function registalias($mode='all',$fromaddress,$privatekey,$alias){
+    // Array
+    // (
+    //     [result] => ok
+    //     [error] =>
+    // )
+
         $block=Blockinc::getInstance();
         $current=$block->current();
         if (!$current) {
@@ -207,19 +317,23 @@ class Wallet extends base{
         }
         $Accountinc=Accountinc::getInstance();
         $frompublickey=$Accountinc->get_public_key_from_address($fromaddress);
+        
         if (!$frompublickey) {
-            return array('result' => '', 'error'=>'frompublic fail');
+            return array('result' => '', 'error'=>'fromaddress fail or fromaddress no public');
         }
 
         $mem=Mempoolinc::getInstance();
-        $fee=0;
+        $fee=10;
+        $amount=0;
         $tt=time();
-        $signature=$mem->signature($fromaddress,0,$fee,3,$alias,$tt,$frompublickey, $privatekey);
+        $signature=$mem->signature($fromaddress,$amount,$fee,3,$alias,$tt,$frompublickey, $privatekey);
+        $hash=$mem->hasha($fromaddress,$amount,$fee,$signature,3,$alias,$tt,$frompublickey);
 
         $res=$mem->check(array(
+            'id' => $hash,
             'height' => $current['height']+1,
             'dst' => $fromaddress,
-            'val' => 0,
+            'val' => $amount,
             'fee' => $fee,
             'signature' => $signature,
             'version' => 3,
