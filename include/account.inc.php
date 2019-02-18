@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190216 test
+// version: 20190218 test
 class Accountinc extends base{
     private static $_instance = null;
     function __construct(){
@@ -269,8 +269,8 @@ class Accountinc extends base{
         }
         
     }
-    public function get_address_from_publickey($publickey){
-        $alias_id=san(strtolower($alias));
+    public function get_address_from_publickey_db($publickey){
+        $publickey=san($publickey);
 
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','id',1,array('public_key="'.$publickey.'"'),'',1);
@@ -362,7 +362,7 @@ class Accountinc extends base{
 
     }
     public function get_public_key_from_alias($alias){
-        $address=san($address);
+        $alias=san($alias);
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','public_key',1,array('alias="'.$alias.'"'),'',1);
         if ($res) {

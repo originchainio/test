@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190216 test
+// version: 20190218 test
 class Mempoolinc extends base{
     private static $_instance = null;
     function __construct(){
@@ -45,6 +45,7 @@ class Mempoolinc extends base{
         if ($x['version']!=111) {
             $hash = $this->hasha($x['dst'],$x['val'],$x['fee'],$x['signature'],$x['version'],$x['message'],$x['date'],$x['public_key']);
             if ($x['id'] != $hash) {
+
                 $this->log('check hash [false]');
                 return false;
             }
@@ -163,18 +164,22 @@ class Mempoolinc extends base{
                 //检查余额够不够检查总额就行，因为打包还要循环检查一次扣一次款,fee是否正确 发送方地址和接收方地址是否存在 alias是否合法
                 //message不能为空且必须小写
                 //fee
-                if (0-$x['fee']!=10) {   return false;  }
+                if (($x['fee']-0)!=10) { $this->log('fee!=10'); return false;  }
                 //检查余额
-                if (0-$x['val']!=0) { return false;    }
+                if (0-$x['val']!=0) { $this->log('val!=0'); return false;    }
 
                 //alias
-                if (san(strtolower($x['message']))!=$x['message']) {
+                $alias=$x['message'];
+                if (san(strtolower($alias))!=$alias) {
+                    $this->log('alias fails ,alisa need strtolower');
                     return false;
                 }
                 if ($Account->alias_check_blacklist($alias)==true) {
+                    $this->log('alias blacklist');
                     return false;
                 }
-                if (strlen($alias)<4||strlen($alias)>25) {
+                if (strlen($alias)<4 or strlen($alias)>25) {
+                    $this->log('alias need >4 <25 , this alisa len:'.strlen($alias));
                     return false;
                 }
                 //
