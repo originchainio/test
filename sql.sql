@@ -54,7 +54,7 @@ DROP TABLE IF EXISTS `masternode`;
 CREATE TABLE `masternode` (
   `public_key` varchar(128) COLLATE utf8mb4_bin NOT NULL,
   `height` int(11) NOT NULL,
-  `ip` varchar(16) COLLATE utf8mb4_bin NOT NULL,
+  `ip` varchar(128) COLLATE utf8mb4_bin NOT NULL,
   `last_won` int(11) NOT NULL DEFAULT '0',
   `blacklist` int(11) NOT NULL DEFAULT '0',
   `fails` int(11) NOT NULL DEFAULT '0',
