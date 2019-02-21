@@ -1,4 +1,5 @@
 <?php
+// Peer architecture comes from https://github.com/arionum/node
 // version: 20190214 test
 include __DIR__.'/class/base.php';
 include __DIR__.'/include/account.inc.php';

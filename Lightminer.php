@@ -1,6 +1,6 @@
 <?php
 class Lightminer{
-	public const Ver='1.0';
+	public const Ver='1.01';
 	public $node;
 	public $public_key;
 	public $private_key;
@@ -22,7 +22,7 @@ class Lightminer{
         $extra = "";
         if ($mode == 'pool') {
             $extra = "&worker=".$this->yourwork."&address=".$this->youraddress;
-            $res = file_get_contents($this->node."/Uinterface.php?m=getminingwork".$extra);
+            $res = file_get_contents($this->node."/pool.php?m=getminingwork".$extra);
         }else{
         	$res = file_get_contents($this->node."/Uinterface.php?m=getminingwork");
         }
@@ -157,7 +157,12 @@ class Lightminer{
                 ],
         ];
         $context = stream_context_create($opts);
-        $res = file_get_contents($this->node."/Uinterface.php?m=submitNonce", false, $context);
+        if ($mode=='solo') {
+            $res = file_get_contents($this->node."/Uinterface.php?m=submitNonce", false, $context);
+        }else{
+            $res = file_get_contents($this->node."/pool.php?m=submitNonce", false, $context);
+        }
+        
         if ($res==false) {
             echo "--> Time out.\n\n";
             return false;
@@ -255,11 +260,11 @@ if (!isset($argv[1])) {
 	$Lightminer->help();
 	exit;
 }
+$type = trim($argv[1]);
 if ($type=='help') {
 	$Lightminer->help();
 	exit;
 }
-$type = trim($argv[1]);
 switch ($type) {
 	case 'solo':
 		if (!isset($argv[2]) or !isset($argv[3]) or !isset($argv[4])) {

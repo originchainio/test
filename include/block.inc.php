@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190128 test
+// version: 20190221 test
 class Blockinc extends base{
     private static $_instance = null;
     function __construct(){
@@ -82,10 +82,12 @@ class Blockinc extends base{
         // get the mempool transactions
         $data = $Mempool->get_mempool_transaction_for_news($current['height']+1,$this->max_transactions());
         if ($data===false) {
+            $this->log("Forge get the mempool transactions [false]",1);
             return false;
         }
 
         //reward
+        $this->log("get reward",1);
         $block_reward = $this->reward($current['height']+1, $data);
         $mn_reward=number_format(round(0.35*$block_reward, 8), 8, ".", "");
         $miner_reward=number_format(round($block_reward-$mn_reward, 8), 8, ".", "");
@@ -104,10 +106,11 @@ class Blockinc extends base{
         $miner_signature = $Transaction->signature($tran['dst'],$tran['val'],$tran['fee'],$tran['version'],$tran['message'],$tran['date'],$tran['public_key'],$reward_miner_private_key);
         $tran['signature']=$miner_signature;
         $tran['id'] = $Transaction->hasha($tran['dst'],$tran['val'],$tran['fee'],$miner_signature,$tran['version'],$tran['message'],$tran['date'],$tran['public_key']);
-        $data[]=$tran;
+        array_unshift($data,$tran);
         
         $mn_signature='';
         if ($mn_winner_public_key!='') {
+            //mn reward
             $tran = [
                 "height"     => $current['height']+1,
                 "dst"        => $mn_winner_address,
@@ -121,7 +124,8 @@ class Blockinc extends base{
             $mn_signature = $Transaction->signature($tran['dst'],$tran['val'],$tran['fee'],$tran['version'],$tran['message'],$tran['date'],$tran['public_key'],$reward_miner_private_key);
             $tran['signature']=$mn_signature;
             $tran['id'] = $Transaction->hasha($tran['dst'],$tran['val'],$tran['fee'],$mn_signature,$tran['version'],$tran['message'],$tran['date'],$tran['public_key']);
-            $data[]=$tran;
+            array_unshift($data,$tran);
+
             // Verify whether Mn can ping and attach a TRX to data
             $response = $Peerinc->peer_post($mn_winner_ip.'/peer.php?q=ping', [], 5);
             // $response='success';
@@ -151,13 +155,15 @@ class Blockinc extends base{
             $mn_signature = $Transaction->signature($tran['dst'],$tran['val'],$tran['fee'],$tran['version'],$tran['message'],$tran['date'],$tran['public_key'],$reward_miner_private_key);
             $tran['signature']=$mn_signature;
             $tran['id'] = $Transaction->hasha($tran['dst'],$tran['val'],$tran['fee'],$mn_signature,$tran['version'],$tran['message'],$tran['date'],$tran['public_key']);
-            $data[]=$tran;
+            array_unshift($data,$tran);
         }
 
         // block signature
+        $this->log("block signature",1);
         $block_signature = $this->signature($miner_address,$current['height']+1,$date,$nonce,$data,$difficulty, $argon,$reward_miner_private_key);
 
         // add the block to the blockchain
+        $this->log("add block",1);
         $res = $this->add($miner_public_key,$current['height']+1, $nonce, $data, $date, $difficulty,$block_signature, $miner_signature,$mn_signature, $argon);
 
         if (!$res) {
@@ -251,6 +257,7 @@ class Blockinc extends base{
         foreach ($data as $value) {
             $value['block']=$block_hash;
             // Check the legality of transactions
+            $this->log('check trx '.$value['id'],1);
             if ($Transaction->check($value)==true) {
                 $res=$Transaction->add_transactions_delete_mempool_from_block($value['id'],$value['public_key'],$block_hash,$height,$value['dst'],$value['val'],$value['fee'],$value['signature'],$value['version'],$value['message'],$value['date']);
                 if ($res == false) {
@@ -525,9 +532,11 @@ class Blockinc extends base{
 
         // invalid future blocks
         if ($time>time()+30) {
+            $this->log("mine time [false]", 2);
             return false;
         }
         if ($block_current_height+1 <= 1 or $difficulty <= 0 or $time<=0) {
+            $this->log("height or diff or time [false]", 2);
             return false;
         }
         

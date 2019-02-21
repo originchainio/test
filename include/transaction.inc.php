@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190216 test
+// version: 20190220 test
 class Transactioninc extends base{
     private static $_instance = null;
     function __construct(){
@@ -244,7 +244,7 @@ class Transactioninc extends base{
                                 'public_key'=>$public_key,
                                 'block'=>$block_hash
         ));
-        if (!$res) {return false;}
+        if (!$res) {    $this->log('add trx fails',1);    return false; }
 
         switch ($version) {
             case 0:
@@ -292,7 +292,7 @@ class Transactioninc extends base{
                 //增加节点
                 $acc=$sql->select('accounts','balance',1,array("public_key='".$public_key."'"),'',1);
                 $res=$sql->update('accounts',array('balance'=>$acc['balance']-10000),array("public_key='".$public_key."'"));
-                if (!$res) {    return false;   }
+                if (!$res) {    $this->log('update balance fails',1);   return false;   }
                 $res=$sql->add('masternode',array(
                                                 'public_key'=>$public_key,
                                                 'height'=>$height,
@@ -302,7 +302,7 @@ class Transactioninc extends base{
                                                 'fails'=>0,
                                                 'status'=>1
                 ));
-                if (!$res) {    return false;   }
+                if (!$res) {    $this->log('add mn fails',1);   return false;   }
                 break;
             case 101:
                 //暂停节点
@@ -318,9 +318,9 @@ class Transactioninc extends base{
                 //删除节点
                 $acc=$sql->select('accounts','balance',1,array("public_key='".$public_key."'"),'',1);
                 $res=$sql->update('accounts',array('balance'=>$acc['balance']+10000),array("public_key='".$public_key."'"));
-                if (!$res) {    return false;   }
+                if (!$res) {    $this->log('update balance fails',1); return false;   }
                 $res=$sql->delete('mn',array("public_key='".$public_key."'"));
-                if (!$res) {    return false;   }
+                if (!$res) {    $this->log('del mn fails',1); return false;   }
                 break;
             case 111:
                 //升级节点状态
@@ -334,9 +334,9 @@ class Transactioninc extends base{
 
         if ($version!=111 and $version!=0 and $version!=4) {
             $res=$sql->delete('mem',array("id='".$id."'"));
-            if (!$res) {    return false;   }
+            if (!$res) {    $this->log('del mem trx fails',1); return false;   }
         }
-
+        $this->log('del mem trx return true',1);
         return true;
     }
 
@@ -358,7 +358,7 @@ class Transactioninc extends base{
         }
         $this->log("check mem version:".$x['version']." id:".$hash);
         //height
-        if ($x['height']<2) { return false;   }
+        if ($x['height']<2) { $this->log("height <2 failed"); return false;   }
         //dst
         if ($x['version']!=2) {
             if (valid_len($x['dst'],70,128)==false) {   $this->log("dst failed");     return false;   }
@@ -372,7 +372,7 @@ class Transactioninc extends base{
         //val
         if ($x['val']-0<0) {    $this->log("val failed"); return false;   }
         //fee
-        if ($x['fee']-0<0) {   $this->log("val failed"); return false;   }
+        if ($x['fee']-0<0) {   $this->log("fee failed"); return false;   }
         //signature
         if ($x['version']!=111 and $x['version']!=4) {
             if (!$this->check_signature($x['dst'],$x['val'],$x['fee'],$x['version'],$x['message'],$x['date'],$x['public_key'],$x['signature'])) {
@@ -400,7 +400,9 @@ class Transactioninc extends base{
         if (strlen($x['public_key']) < 15) {   $this->log("check_public_key failed");  return false;}
         //统一检查发送方账号是否存在
         if ($x['version']==1 or $x['version']==2 or $x['version']==3 or $x['version']==100 or $x['version']==101 or $x['version']==102 or $x['version']==103) {
-            if ($Account->public_key_alive_from_public($x['public_key'])==false) { return false;}
+            if ($Account->public_key_alive_from_public($x['public_key'])==false) { 
+                $this->log("public_key_alive_from_public checkfailed");
+                return false;}
         }
         
         $src=$Account->get_address_from_public_key($x['public_key']);
@@ -440,6 +442,7 @@ class Transactioninc extends base{
 
         //其他判断
         $res_account_from=$sql->select('acc','*',1,array("public_key='".$x['public_key']."'"),'',1);
+        $this->log("it version check");
         switch ($x['version']) {
             case 0:
                 //public_key和dst是否一致
@@ -472,6 +475,7 @@ class Transactioninc extends base{
 
                 //检查余额
                 if ($res_account_from['balance']-$x['val']-$fee<0) {
+                    $this->log('Sorry,your credit is running low');
                     return false;
                 }
                 break;
@@ -489,17 +493,21 @@ class Transactioninc extends base{
 
                 //alias
                 if (san(strtolower($x['dst']))!=$x['dst']) {
+                    $this->log('dst is fail');
                     return false;
                 }
                 if ($Account->alias_check_blacklist($x['dst'])==true) {
+                    $this->log('dst is blacklist');
                     return false;
                 }
                 if (strlen($x['dst'])<4||strlen($x['dst'])>25) {
+                    $this->log('dst is 4-25');
                     return false;
                 }
-                if ($Account->alias_alive_from_alias(strtolower($x['dst']))==false) {  return false; }
+                if ($Account->alias_alive_from_alias(strtolower($x['dst']))==false) {  $this->log('dst is not alive'); return false; }
                 //检查余额
                 if ($res_account_from['balance']-$x['val']-$fee<0) {
+                    $this->log('Sorry,your credit is running low');
                     return false;
                 }
                 break;
@@ -508,12 +516,13 @@ class Transactioninc extends base{
                 //检查余额够不够检查总额就行，因为打包还要循环检查一次扣一次款,fee是否正确 发送方地址和接收方地址是否存在 alias是否合法
                 //message不能为空且必须小写
                 //fee
-                if (0-$x['fee']!=10) {   return false;  }
+                if (($x['fee']-0)!=10) {   return false;  }
                 //检查余额
                 if (0-$x['val']!=0) { return false;    }
 
                 //alias
-                if (san(strtolower($x['message']))!=$x['message']) {
+                $alias=$x['message'];
+                if (san(strtolower($alias))!=$alias) {
                     return false;
                 }
                 if ($Account->alias_check_blacklist($alias)==true) {
@@ -550,7 +559,7 @@ class Transactioninc extends base{
                 $Masternodeinc=Masternodeinc::getInstance();
                 $res=$Masternodeinc->get_masternode($x['public_key']);
                 if (!$res) {
-                    $this->log("mn nohave failed");
+                    $this->log("mn nohave failed ".$x['public_key']);
                     return false;
                 }
                 if ($res['status']!=1) {
@@ -565,27 +574,31 @@ class Transactioninc extends base{
                 //message不能为空且必须小写
 
                 // fee
-                if (0-$x['fee']!=0) {   return false;  }
-                if (0-$x['val']!=0) { return false;    }
+                if (0-$x['fee']!=0) {   $this->log('fee falis'); return false;  }
+                if (0-$x['val']!=0) { $this->log('val falis'); return false;    }
 
                 //检查余额
-                if ($res_account_from['balance']-10000-$fee<0) {
+                if ($res_account_from['balance']-10000-$x['fee']<0) {
+                    $this->log('Sorry,your credit is running low');
                     return false;
                 }
 
                 //message
-                if (san_host(strtolower($x['message']))!=$x['message']) {
+                if (strtolower($x['message'])!=$x['message']) {
+                    $this->log('Sorry,your message is not true');
                     return false;
                 }
                 //mn是否存在
                 $res=$sql->select('mn','*',2,array("public_key='".$x['public_key']."'","height<=".$x['height']),'',1);
-                if ($res!=0) {  return false;   }
+                if ($res!=0) {  $this->log('Nodes already exist Cannot continue to add'); return false;   }
                 //需要等待10个块
                 $res=$sql->select('trx','*',1,array("public_key='".$x['public_key']."'","height<=".$x['height'],'(version=100 or version=103)'),'height desc',1);
                 if ($res and $res['version']!=103) {
+                    $this->log('mn already reg');
                     return false;
                 }
-                if ($res['height']-$x['height']<10) {
+                if ($res and $res['version']!=100 and ($x['height']-$res['height']<10)) {
+                    $this->log('need 10 blocks');
                     return false;
                 }
                 
@@ -604,19 +617,21 @@ class Transactioninc extends base{
                 //判断mn存在不存在
                 //检查如果以前存在节点 需要等待至少10个块
                 // fee
-                if ($x['fee']!=0) {   return false;  }
+                if ($x['fee']!=0) {   $this->log('fee falis'); return false;  }
                 //message
-                if ($x['message']!='') {   return false;   }
+                if ($x['message']=='') {   $this->log('mess falis'); return false;   }
 
                 //mn是否存在
                 $res=$sql->select('mn','*',2,array("public_key='".$x['public_key']."'","height<=".$x['height']),'',1);
-                if ($res!=1) {  return false;   }
+                if ($res!=1) {  $this->log('Nodes Non-existent'); return false;   }
                 //需要等待10个块
                 $res=$sql->select('trx','*',1,array("public_key='".$x['public_key']."'","height<=".$x['height'],'(version=100 or version=103)'),'height desc',1);
                 if ($res and $res['version']!=100) {
+                     $this->log('mn no reg');
                     return false;
                 }
-                if ($res['height']-$x['height']<10) {
+                if ($res and $res['version']!=103 and ($x['height']-$res['height']<10)) {
+                    $this->log('need 10 blocks');
                     return false;
                 }
                 break;
@@ -653,7 +668,7 @@ class Transactioninc extends base{
         // make sure the transaction is not already on the blockchain
         $res = $sql->select('trx','*',2,array("id='".$x['id']."'"),'',1);
         if ($res!=0) {  $this->log("trx failed");   return false; }
-
+        $this->log('trx check true return');
         return true;
     }
     // sign a transaction

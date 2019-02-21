@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190218 test
+// version: 20190220 test
 class Mempoolinc extends base{
     private static $_instance = null;
     function __construct(){
@@ -143,15 +143,18 @@ class Mempoolinc extends base{
 
                 //alias
                 if (san(strtolower($x['dst']))!=$x['dst']) {
+                    $this->log('dst is fail');
                     return false;
                 }
                 if ($Account->alias_check_blacklist($x['dst'])==true) {
+                    $this->log('dst is blacklist');
                     return false;
                 }
                 if (strlen($x['dst'])<4||strlen($x['dst'])>25) {
+                    $this->log('dst is 4-25');
                     return false;
                 }
-                if ($Account->alias_alive_from_alias(strtolower($x['dst']))==false) {  return false; }
+                if ($Account->alias_alive_from_alias(strtolower($x['dst']))==false) {  $this->log('dst is not alive'); return false; }
                 //检查余额
                 $vvv=$this->get_valfee_from_public_key($x['public_key']);
                 if ($res_account_from['balance']-$vvv-$x['val']-$fee<0) {
@@ -187,7 +190,7 @@ class Mempoolinc extends base{
                 if ($Account->alias_alive_from_public_key($x['public_key'])==true) {  return false; }
                 //检查余额
                 $vvv=$this->get_valfee_from_public_key($x['public_key']);
-                if ($res_account_from['balance']-$vvv-$x['val']-$fee<0) {
+                if ($res_account_from['balance']-$vvv-$x['val']-$x['fee']<0) {
                     $this->log('Sorry,your credit is running low');
                     return false;
                 }
@@ -198,28 +201,38 @@ class Mempoolinc extends base{
             case 100:
                 //增加节点
                 // fee
-                if (0-$x['fee']!=0) {   return false;  }
-                if (0-$x['val']!=0) { return false;    }
+                if (0-$x['fee']!=0) {   $this->log('fee is fails'); return false;  }
+                if (0-$x['val']!=0) { $this->log('val is fails'); return false;    }
+                //message
+                if ($x['message']=='') {   $this->log('message is fails'); return false;   }
 
                 //检查余额
                 $vvv=$this->get_valfee_from_public_key($x['public_key']);
-                if ($res_account_from['balance']-$vvv-10000-$fee<0) {
+                if ($res_account_from['balance']-$vvv-10000-$x['fee']<0) {
+                    $this->log('Sorry,your credit is running low');
                     return false;
                 }
                 //message
-                if (san_host(strtolower($x['message']))!=$x['message']) {
+                if (strtolower($x['message'])!=$x['message']) {
                     $this->log('Sorry,your message is not true');
                     return false;
                 }
                 //mn是否存在 只能有一个节点
                 $res=$sql->select('mn','*',2,array("public_key='".$x['public_key']."'","height<=".$x['height']),'',1);
                 if ($res!=0) {  $this->log('Nodes already exist Cannot continue to add');   return false;   }
+
+                $res=$sql->select('mem','*',2,array("public_key='".$x['public_key']."'",'(version=100 or version=103)'),'',1);
+                if ($res!=0) {  $this->log('this mem already add');   return false;   }
+
                 //需要等待10个块
                 $res=$sql->select('trx','*',1,array("public_key='".$x['public_key']."'","height<=".$x['height'],'(version=100 or version=103)'),'height desc',1);
                 if ($res and $res['version']!=103) {
+                    $this->log('mn already reg');
                     return false;
                 }
-                if ($res['height']-$x['height']<10) {
+
+                if ($res and $res['version']!=100 and ($x['height']-$res['height']<10)) {
+                    $this->log('need 10 blocks');
                     return false;
                 }
                 
@@ -240,17 +253,22 @@ class Mempoolinc extends base{
                 // fee
                 if ($x['fee']!=0) {   return false;  }
                 //message
-                if ($x['message']!='') {   return false;   }
+                if ($x['message']=='') {   return false;   }
 
                 //mn是否存在
                 $res=$sql->select('mn','*',2,array("public_key='".$x['public_key']."'","height<=".$x['height']),'',1);
                 if ($res!=1) {  $this->log('Nodes Non-existent');  return false;   }
+
+                $res=$sql->select('mem','*',2,array("public_key='".$x['public_key']."'",'(version=100 or version=103)'),'',1);
+                if ($res!=0) {  $this->log('this mem already add');   return false;   }
                 //需要等待10个块
                 $res=$sql->select('trx','*',1,array("public_key='".$x['public_key']."'","height<=".$x['height'],'(version=100 or version=103)'),'height desc',1);
                 if ($res and $res['version']!=100) {
+                    $this->log('mn no reg');
                     return false;
                 }
-                if ($res['height']-$x['height']<10) {
+                if ($res and $res['version']!=103 and ($x['height']-$res['height']<10)) {
+                    $this->log('need 10 blocks');
                     return false;
                 }
                 break;
@@ -267,15 +285,16 @@ class Mempoolinc extends base{
         //host
         if ($x['version']==100 or $x['version']==101 or $x['version']==102 or $x['version']==103) {
              if (san_host($x['message'])!=$x['message']) {
+                 $this->log('message fails');
                  return false;
              }
         }
         // make sure it's not already in mempool
         $res = $sql->select('mem','*',2,array("id='".$x['id']."'"),'',1);
-        if ($res!=0) { return false;   }
+        if ($res!=0) { $this->log('make sure its not already in mempool'); return false;   }
         // make sure the transaction is not already on the blockchain
         $res = $sql->select('trx','*',2,array("id='".$x['id']."'"),'',1);
-        if ($res!=0) { return false;   }
+        if ($res!=0) { $this->log('make sure the transaction is not already on the blockchain'); return false;   }
 
         $this->log('check mempool [true]',3);
         return true;
@@ -307,6 +326,7 @@ class Mempoolinc extends base{
         $this->log('returns X  transactions from mempool');
         $res=$sql->select('mem','*',0,array('height<='.$height),'height ASC',0);
         if ($res===false) {
+            $this->log('returns a mempool data [false]');
             return false;
         }
 

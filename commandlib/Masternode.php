@@ -2,7 +2,7 @@
 /**
  * 
  */
-// version: 20190212 test
+// version: 20190220 test
 class Masternode extends base{
 	private static $_instance = null;
 
@@ -18,6 +18,12 @@ class Masternode extends base{
     }
  
     public function registermasternode($mode='cli',$privatekey){
+    // Array
+    // (
+    //     [result] => ok
+    //     [error] =>
+    // )
+
         if ($mode!=='cli') {
             return array('result' => '', 'error'=>'fail');
         }
@@ -31,7 +37,7 @@ class Masternode extends base{
         }
 
         $Accountinc=Accountinc::getInstance();
-        $toaddress=$Accountinc->get_address_from_publickey($this->config['masternode_public_key']);
+        $toaddress=$Accountinc->get_address_from_publickey_db($this->config['masternode_public_key']);
         if (!$toaddress) {
             return array('result' => '', 'error'=>'masternode_public_key fail');
         }
@@ -40,8 +46,8 @@ class Masternode extends base{
         $fee=0;
         $amount=0;
         $tt=time();
-        $signature=$mem->signature($toaddress,$amount,$fee,100,$this->config['hostname'],$tt,$frompublickey, $privatekey);
-        $hash=$mem->hasha($toaddress,$amount,$fee,$signature,100,$this->config['hostname'],$tt,$frompublickey);
+        $signature=$mem->signature($toaddress,$amount,$fee,100,$this->config['hostname'],$tt,$this->config['masternode_public_key'], $privatekey);
+        $hash=$mem->hasha($toaddress,$amount,$fee,$signature,100,$this->config['hostname'],$tt,$this->config['masternode_public_key']);
         $res=$mem->check(array(
             'id' => $hash,
             'height' => $current['height']+1,
@@ -58,7 +64,7 @@ class Masternode extends base{
         if (!$res) {
             return array('result' => '', 'error'=>'mem check fail');
         }
-        $res=$mem->add_mempool($current['height']+1,$toaddress,$amount,$fee,$signature,1,'',$frompublickey,$tt,'local');
+        $res=$mem->add_mempool($current['height']+1,$toaddress,$amount,$fee,$signature,100,$this->config['hostname'],$this->config['masternode_public_key'],$tt,'local');
         if ($res) {
             return array('result' => 'ok', 'error'=>'');
         }else{
@@ -66,6 +72,12 @@ class Masternode extends base{
         }
     }
     public function cancelmasternode($mode='cli',$privatekey){
+    // Array
+    // (
+    //     [result] => ok
+    //     [error] =>
+    // )
+
         if ($mode!=='cli') {
             return array('result' => '', 'error'=>'fail');
         }
@@ -79,7 +91,7 @@ class Masternode extends base{
         }
 
         $Accountinc=Accountinc::getInstance();
-        $toaddress=$Accountinc->get_address_from_publickey($this->config['masternode_public_key']);
+        $toaddress=$Accountinc->get_address_from_publickey_db($this->config['masternode_public_key']);
         if (!$toaddress) {
             return array('result' => '', 'error'=>'masternode_public_key fail');
         }
@@ -88,8 +100,8 @@ class Masternode extends base{
         $fee=0;
         $amount=0;
         $tt=time();
-        $signature=$mem->signature($toaddress,$amount,$fee,103,$this->config['hostname'],$tt,$frompublickey, $privatekey);
-        $hash=$mem->hasha($toaddress,$amount,$fee,$signature,103,$this->config['hostname'],$tt,$frompublickey);
+        $signature=$mem->signature($toaddress,$amount,$fee,103,$this->config['hostname'],$tt,$this->config['masternode_public_key'], $privatekey);
+        $hash=$mem->hasha($toaddress,$amount,$fee,$signature,103,$this->config['hostname'],$tt,$this->config['masternode_public_key']);
         $res=$mem->check(array(
             'id' => $hash,
             'height' => $current['height']+1,
@@ -106,7 +118,7 @@ class Masternode extends base{
         if (!$res) {
             return array('result' => '', 'error'=>'mem check fail');
         }
-        $res=$mem->add_mempool($current['height']+1,$toaddress,$amount,$fee,$signature,1,'',$frompublickey,$tt,'local');
+        $res=$mem->add_mempool($current['height']+1,$toaddress,$amount,$fee,$signature,103,$this->config['hostname'],$this->config['masternode_public_key'],$tt,'local');
         if ($res) {
             return array('result' => 'ok', 'error'=>'');
         }else{
@@ -114,6 +126,26 @@ class Masternode extends base{
         }
     }
     public function listmasternode($mode='cli'){
+    // Array
+    // (
+    //     [result] => Array
+    //         (
+    //             [0] => Array
+    //                 (
+    //                     [public_key] => PZ8Tyr4Nx8MHsRAGM....
+    //                     [height] => 811
+    //                     [ip] => http://192.168.1.36
+    //                     [last_won] => 845
+    //                     [blacklist] => 845
+    //                     [fails] => 0
+    //                     [status] => 1
+    //                 )
+
+    //         )
+
+    //     [error] =>
+    // )
+
         if ($mode!=='cli') {
             return array('result' => '', 'error'=>'fail');
         }

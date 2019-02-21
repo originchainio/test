@@ -204,6 +204,7 @@ class Accountinc extends base{
         $block_hash=san($block_hash);
         
         if ($block_hash=='') {
+            $this->log('block_hash is empty');
             return false;
         }
         $sql=OriginSql::getInstance();
@@ -222,13 +223,16 @@ class Accountinc extends base{
             }
             return true;
         }elseif($public_key=='' and $address==''){
+            $this->log('publickey and address is empty');
             return false;
         }elseif($public_key!='' and $address!=''){
             if (valid_len($address,70,128)==false) {
+                $this->log('address len is fails');
                 return false;
             }
             $address1=$this->get_address_from_public_key($public_key);
             if ($address!=$address1) {
+                $this->log('address != publickey is address');
                 return false;
             }
             $address_true=$this->address_alive_from_address($address);
@@ -243,6 +247,7 @@ class Accountinc extends base{
             return true;
         }elseif($public_key=='' and $address!=''){
             if (valid_len($address,70,128)==false) {
+                $this->log('address len is fails');
                 return false;
             }
             $address_true=$this->address_alive_from_address($address);
@@ -251,6 +256,7 @@ class Accountinc extends base{
             }
             return true;
         }else{
+            $this->log('check_acc_pub_update_DB fails fails');
             return false;
         }
     }
@@ -275,10 +281,10 @@ class Accountinc extends base{
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','id',1,array('public_key="'.$publickey.'"'),'',1);
         if ($res) {
-            $this->log('get the account of an alias from database [true]');
+            $this->log('get the account of an publickey from database [true]');
             return $res['id'];
         }else{
-            $this->log('get the account of an alias from database [false]');
+            $this->log('get the account of an publickey from database [false]');
             return false;
         }
         

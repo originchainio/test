@@ -111,10 +111,10 @@ class Peerinc extends base{
     public function delete_fails_peer(){
         $sql=OriginSql::getInstance();
         $res=$sql->delete('peer',array("fails>100 or stuckfail>100"));
-        if ($res) {
-            return $res;
-        }else{
+        if ($res===false) {
             return false;
+        }else{
+            return $res;
         }
     }
     //reserve=0 blacklisted<time()

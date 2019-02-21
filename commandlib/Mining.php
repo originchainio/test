@@ -53,7 +53,8 @@ class Mining extends base{
         $Mempool=Mempoolinc::getInstance();
         $data = $Mempool->get_mempool_transaction_for_news($current['height']+1,$block->max_transactions());
         if ($data==false) {
-            $data=[];
+             $data=[];
+            //return array('result' => '', 'error'=>'get mem is fails');
         }
 
         $difficulty = $block->get_next_difficulty($current);
