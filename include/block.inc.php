@@ -3,7 +3,7 @@
 The MIT License (MIT)
 Copyright (C) 2019 OriginchainDev
 
-originchain.io
+originchain.net
 
 　　Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190221 test
+// version: 20190226
 class Blockinc extends base{
     private static $_instance = null;
     function __construct(){
@@ -56,7 +56,7 @@ class Blockinc extends base{
         // the block's date timestamp must be bigger than the last block
         $date = time();
         if ($date <= $current['date']) {
-            $this->log("Forge failed - Date older than last block [false]",1);
+            $this->log('block.inc->forge Date older than last block false',0,true);
             return false;
         }
 
@@ -76,22 +76,22 @@ class Blockinc extends base{
 
         //check the argon hash and the nonce to produce a valid block
         if (!$this->mine($miner_public_key, $nonce, $argon, $difficulty, $current['id'], $current['height'], $date)) {
-            $this->log("Forge failed - Invalid argon [false]",1);
+            $this->log('block.inc->forge Invalid argon false',0,true);
             return false;
         }
         // get the mempool transactions
         $data = $Mempool->get_mempool_transaction_for_news($current['height']+1,$this->max_transactions());
         if ($data===false) {
-            $this->log("Forge get the mempool transactions [false]",1);
+            $this->log('block.inc->forge Forge get the mempool transactions false',0,true);
             return false;
         }
+        
 
         //reward
-        $this->log("get reward",1);
+        $this->log("block.inc->forge get reward",0,true);
         $block_reward = $this->reward($current['height']+1, $data);
-        $mn_reward=number_format(round(0.35*$block_reward, 8), 8, ".", "");
-        $miner_reward=number_format(round($block_reward-$mn_reward, 8), 8, ".", "");
-
+        $mn_reward=$block_reward['mn_reward'];
+        $miner_reward=$block_reward['miner_reward'];
         //miner reward
         $tran = [
             "height"     => $current['height']+1,
@@ -159,18 +159,15 @@ class Blockinc extends base{
         }
 
         // block signature
-        $this->log("block signature",1);
         $block_signature = $this->signature($miner_address,$current['height']+1,$date,$nonce,$data,$difficulty, $argon,$reward_miner_private_key);
 
         // add the block to the blockchain
-        $this->log("add block",1);
         $res = $this->add($miner_public_key,$current['height']+1, $nonce, $data, $date, $difficulty,$block_signature, $miner_signature,$mn_signature, $argon);
-
         if (!$res) {
-            $this->log("Forge block [false]",3);
+            $this->log('block.inc->forge Forge block false',0,true);
             return false;
         }
-        $this->log("Forge block finished [true]",3);
+        $this->log('block.inc->forge Forge block finished true',0,true);
         return true;
     }
 
@@ -207,7 +204,7 @@ class Blockinc extends base{
         if ($height>1) {
             $prv_id=$this->get_block_from_height($height-1);
         }else{
-            $this->log('add block height <1 [false]',1);
+            $this->log('block.inc->add add block height <1 false',0,true);
             return false;
         }
         
@@ -216,14 +213,14 @@ class Blockinc extends base{
 
         // reward
         $block_reward = $this->reward($height, $data);
-        $mn_reward=number_format(round(0.35*$block_reward, 8), 8, ".", "");
-        $miner_reward=number_format(round($block_reward-$mn_reward, 8), 8, ".", "");
+        $mn_reward=$block_reward['mn_reward'];
+        $miner_reward=$block_reward['miner_reward'];
         //  check signature
         // if ($Transaction->check_signature($mn_winner_address,$mn_reward,"0.00000000",4,'',$date,$mn_winner_public_key, $mn_signature)==false) {
         //     return false;
         // }
         if ($Transaction->check_signature($miner_address,$miner_reward,"0.00000000",0,'',$date,$miner_public_key, $miner_signature)==false) {
-            $this->log('add block check trx sign [false]',1);
+            $this->log('block.inc->add block check trx sign false',0,true);
             return false;
         }
 
@@ -250,7 +247,7 @@ class Blockinc extends base{
             // rollback and exit if it fails
             $sql->rollback();
             $sql->unlock_tables();
-            $this->log('insert block to database roolback [false]',1);
+            $this->log('block.inc->add block insert block to database roolback false',0,true);
             return false;
         }
         // Cyclic transaction
@@ -264,13 +261,13 @@ class Blockinc extends base{
                     // rollback and exit if it fails
                     $sql->rollback();
                     $sql->unlock_tables();
-                    $this->log("add block add trx del mempool [false]",1);
+                    $this->log('block.inc->add add block add trx del mempool false',0,true);
                     return false;
                 }
             }else{
                 $sql->rollback();
                 $sql->unlock_tables();
-                $this->log("add block Transaction check [false]",1);
+                $this->log('block.inc->add add block Transaction check false',0,true);
                 return false;
             }
         }
@@ -280,15 +277,14 @@ class Blockinc extends base{
         // relese the locking as everything is finished
         $sql->commit();
         $sql->unlock_tables();
-        $this->log("add block finished [true]",3);
+        $this->log('block.inc->add add block finished true',0,true);
         return true;
     }
 
-    // returns the current block, without the transactions
+    // current block
     public function current(){
         $sql=OriginSql::getInstance();
         $current = $sql->select('block','*',1,'','height DESC',1);
-
         if (!$current) {
             return $this->genesis();
         }
@@ -316,21 +312,19 @@ class Blockinc extends base{
 
 
         if (!$current) {
-            $this->log('get prev block [false]');
+            $this->log('block.inc->prev get prev block false',0,true);
             return false;
         }
 
         return $current;
     }
-
-    // calculates the difficulty / base target for a specific block. The higher the difficulty number, the easier it is to win a block.
     public function valid_difficulty($height,$difficulty){
         $height=intval($height);
         $prev=$this->prev($height);
         $dif=$this->get_next_difficulty($prev);
 
         if ($difficulty!=$dif) {
-            $this->log('valid block diff [false]');
+            $this->log('block.inc->valid_difficulty valid block diff false',0,true);
             return false;
         }else{
             return true;
@@ -342,7 +336,6 @@ class Blockinc extends base{
 
         // for the first 10 blocks, use the genesis difficulty
         if ($current['height'] < 10) {
-            // return $current['difficulty'];
             return 9223372036854775800;
         }
 
@@ -382,56 +375,48 @@ class Blockinc extends base{
     }
     // calculates the maximum block size
     public function max_transactions(){
-        // $current = $this->current();
-        // $limit = $current['height'] - 100;
-        // $avg = $this->db->single("SELECT AVG(transactions) FROM blocks WHERE height>:limit", [":limit" => $limit]);
-        // if ($avg < 100) {
-        //     return 100;
-        // }
-        // return ceil($avg * 1.1);
         return 100;
     }
 
     // calculate the reward for each block
     public function reward($height, $data = []){
+        $this->log('block.inc->reward',0,true);
         $height=intval($height);
         // starting reward
         $reward_base = 100;
-        if ($height<=10) {
-            return 5000000;
+        if ($height==2) {
+            return array('miner_reward' => 2800000, 'mn_reward'=>1,'max_reward'=>2800001,'destroy_reward'=>0);
         }
-        if ($height<=30) {
-           return 2000000;
-        }elseif(30<$height and $height<=100){
-            return 1000;
+        if (2<$height and $height<=10) {
+            return array('miner_reward' => 65, 'mn_reward'=>35,'max_reward'=>100,'destroy_reward'=>0);
         }
-        // decrease by 1% each 10800 blocks (approx 1 month)
+
         $factor = floor($height / 10800) / 100;
         $reward_base = $reward_base-$reward_base * $factor;
         if ($reward_base < 0) {
             $reward_base = 0;
             $reward=0;
         }else{
+            $base_f=$reward_base/20;
+
             $sql=OriginSql::getInstance();
-            $blk_block = $sql->select('block','difficulty',0,array("height<".$height),'height DESC',7);
-            $jici=0;
-            for ($i=0;$i<5;$i++) {
+            $blk_block = $sql->select('block','difficulty',0,array("height<".$height),'height DESC',9);
+            $cumulative=0;
+            for ($i=0;$i<8;$i++) {
                 if ($blk_block[$i]['difficulty']<$blk_block[$i+1]['difficulty']) {
-                    $jici=$jici+0.2;
+                    $cumulative=$cumulative+$base_f;
                 }else{
-                    $jici=$jici-0.2;
+                    $cumulative=$cumulative-$base_f;
                 }
             }
-            if ($jici==0) {
-                $reward = $reward_base;
-            }elseif($jici<0){
-                if ($jici==-1) {
-                    $reward=1;
-                }else{
-                    $reward = $reward_base-$reward_base*abs($jici);
-                }
-            }elseif($jici>0){
-                $reward = $reward_base*$jici;
+
+            $reward = ($base_f*10)+$cumulative;
+
+            if ($reward<=0) {
+                $reward=0;
+            }
+            if ($reward>$reward_base) {
+                $reward=$reward_base;
             }
         }
 
@@ -442,9 +427,78 @@ class Blockinc extends base{
                 $fees += $x['fee'];
             }
         }
-        return number_format($reward + $fees, 8, '.', '');
-    }
+        $destroy_reward=$reward_base-$reward;
+        $reward=$reward+$fees;
 
+        $mn_reward=number_format(round(0.35*$reward, 8), 8, ".", "");
+        $miner_reward=number_format(round($reward-$mn_reward, 8), 8, ".", "");
+        $max_reward=$reward_base;
+        $destroy_reward=number_format(round($destroy_reward, 8), 8, ".", "");
+
+        // $this->log('block.inc->reward mn_reward:'.$mn_reward.' '.$height,0,true);
+        // $this->log('block.inc->reward miner_reward:'.$miner_reward.' '.$height,0,true);
+        return array('miner_reward' => $miner_reward, 'mn_reward'=>$mn_reward,'max_reward'=>$max_reward,'destroy_reward'=>$destroy_reward);
+    }
+    public function reward_nofee($height){
+        $this->log('block.inc->reward',0,true);
+        $height=intval($height);
+        // starting reward
+        $reward_base = 100;
+        if ($height==2) {
+            return array('miner_reward' => 2800000, 'mn_reward'=>1,'max_reward'=>2800001,'destroy_reward'=>0);
+        }
+        if (2<$height and $height<=10) {
+            return array('miner_reward' => 65, 'mn_reward'=>35,'max_reward'=>100,'destroy_reward'=>0);
+        }
+
+        $factor = floor($height / 10800) / 100;
+        $reward_base = $reward_base-$reward_base * $factor;
+        if ($reward_base < 0) {
+            $reward_base = 0;
+            $reward=0;
+        }else{
+            $base_f=$reward_base/20;
+
+            $sql=OriginSql::getInstance();
+            $blk_block = $sql->select('block','difficulty',0,array("height<".$height),'height DESC',9);
+            $cumulative=0;
+            for ($i=0;$i<8;$i++) {
+                if ($blk_block[$i]['difficulty']<$blk_block[$i+1]['difficulty']) {
+                    $cumulative=$cumulative+$base_f;
+                }else{
+                    $cumulative=$cumulative-$base_f;
+                }
+            }
+
+            $reward = ($base_f*10)+$cumulative;
+
+            if ($reward<=0) {
+                $reward=0;
+            }
+            if ($reward>$reward_base) {
+                $reward=$reward_base;
+            }
+        }
+
+        // calculate the transaction fees
+        $fees = 0;
+        // if (count($data) > 0) {
+        //     foreach ($data as $x) {
+        //         $fees += $x['fee'];
+        //     }
+        // }
+        $destroy_reward=$reward_base-$reward;
+        $reward=$reward+$fees;
+
+        $mn_reward=number_format(round(0.35*$reward, 8), 8, ".", "");
+        $miner_reward=number_format(round($reward-$mn_reward, 8), 8, ".", "");
+        $max_reward=$reward_base;
+        $destroy_reward=number_format(round($destroy_reward, 8), 8, ".", "");
+
+        // $this->log('block.inc->reward mn_reward:'.$mn_reward.' '.$height,0,true);
+        // $this->log('block.inc->reward miner_reward:'.$miner_reward.' '.$height,0,true);
+        return array('miner_reward' => $miner_reward, 'mn_reward'=>$mn_reward,'max_reward'=>$max_reward,'destroy_reward'=>$destroy_reward);
+    }
     // checks the validity of a block
     //ok
                 // $x=>[
@@ -462,7 +516,7 @@ class Blockinc extends base{
 
         //hash
         if ($this->hasha($x['miner_public_key'],$data['height'],$data['date'],$data['nonce'],$x['trx_data'],$data['signature'], $data['difficulty'],$data['argon'])!=$data['id']) {
-            $this->log('check block hash [false]');
+            $this->log('block.inc->check block hash false',0,true);
             return false;
         }
 
@@ -472,54 +526,81 @@ class Blockinc extends base{
 
         //check the argon hash and the nonce to produce a valid block
         if (!$this->mine($x['miner_public_key'], $data['nonce'], $data['argon'], $data['difficulty'], $prv['id'], $prv['height'], $data['date'])) {
-            $this->log('check block mine [false]',1);
+            $this->log('block.inc->check mine false',0,true);
             return false;
         }
 
         //height
         if ($data['height']-$prv['height']!=1) {
-            $this->log('check block height [false]',1);
+            $this->log('block.inc->check block height false',0,true);
             return false;
         }
 
         //date
         if ($data['date']-$prv['date']<=30) {
-            $this->log('check block date [false]',1);
+            $this->log('block.inc->check block date false',0,true);
             return false;
         }
 
         //nonce
 
         //signature
-
         if ($this->check_signature($data['generator'],$data['height'],$data['date'],$data['nonce'],$x['trx_data'],$x['miner_public_key'],$data['difficulty'], $data['argon'],$data['signature'])==false) {
-            $this->log('check block signature [false]',1);
+            $this->log('block.inc->check block signature false',0,true);
             return false;
         }
 
 
 
         //difficulty
-
         if ($this->valid_difficulty($data['height'],$data['difficulty'])==false) {
-            $this->log('check block diff [false]',1);
+            $this->log('block.inc->check block diff false',0,true);
             return false;
         }
 
         //argon
         if (strlen($data['argon']) < 20) {
-            $this->log('check block argon [false]',1);
+            $this->log('block.inc->check block argon false',0,true);
             return false;
         }
 
         //transactions
-
         if (count($x['trx_data'])!=$data['transactions']) {
-            $this->log('check block trx count [false]',1);
-           return false;
+            $this->log('block.inc->check trx count false',0,true);
+            return false;
         }
 
-        $this->log('check block finshed [true]',1);
+        //reward
+        $my_trx_list=[];
+        $miner_reward=0;
+        $mn_reward=0;
+        foreach ($x['trx_data'] as $value) {
+            if ($value['version']!=0 and $value['version']!=4 and $value['version']!=111) {
+                $my_trx_list[]=$value;
+            }
+            if ($value['version']==0) {
+                $miner_reward=$value['val'];
+            }
+            if ($value['version']==4) {
+                $mn_reward=$value['val'];
+            }
+
+        }
+        // return array('miner_reward' => $miner_reward, 'mn_reward'=>$mn_reward,'max_reward'=>$max_reward,'destroy_reward'=>$destroy_reward);
+        $get_reward=$this->reward($data['height'], $my_trx_list);
+        if (bccomp($miner_reward, $get_reward['miner_reward'], 8)!=0) {
+            $this->log('Block.inc->check miner_reward false',0,true);
+            return false;
+        }
+        if ($mn_reward!==0) {
+            if (bccomp($mn_reward, $get_reward['mn_reward'], 8)!=0) {
+                $this->log('Block.inc->check mn_reward false',0,true);
+                return false;
+            }
+        }
+
+
+        $this->log('block.inc->check block finshed true',0,true);
         return true;
     }
 
@@ -532,16 +613,16 @@ class Blockinc extends base{
 
         // invalid future blocks
         if ($time>time()+30) {
-            $this->log("mine time [false]", 2);
+            $this->log('block.inc->mine time false',0,true);
             return false;
         }
         if ($block_current_height+1 <= 1 or $difficulty <= 0 or $time<=0) {
-            $this->log("height or diff or time [false]", 2);
+            $this->log('block.inc->mine height or diff or time false',0,true);
             return false;
         }
         
         if (empty($public_key)) {
-            $this->log("Mine Empty public key [false]", 1);
+            $this->log('block.inc->mine Empty public key false',0,true);
             return false;
         }
 
@@ -555,7 +636,7 @@ class Blockinc extends base{
 
         // check argon's hash validity
         if (!password_verify($base, $argon)) {
-            $this->log("Origin verify failed - [$base]-[$argon]-[$nonce] [false]", 2);
+            $this->log('block.inc->mine password_verify false',0,true);
             return false;
 
         }
@@ -581,7 +662,7 @@ class Blockinc extends base{
 
         // if the deadline >0 and <=50, the arguments are valid fora  block win
         if ($result > 0 && $result <= 50) {
-            $this->log("Mine block Success [true]", 3);
+            $this->log('block.inc->mine Mine block Success true',0,true);
             return true;
         }
         return false;
@@ -639,9 +720,8 @@ class Blockinc extends base{
         if ($start_height<2) {
             $start_height=1;
         }
-        $this->log("pop last ".$no." blocks [true]", 3);
+        $this->log('block.inc->pop '.$no.' true',0,true);
         return $this->delete($start_height);
-        
     }
 
     // delete all blocks >= height
@@ -665,7 +745,7 @@ class Blockinc extends base{
         foreach ($r as $x) {
             $res = $Transaction->delete_transactions_to_mempool_from_block($x['id']);
             if ($res === false) {
-                $this->log("A transaction could not be reversed. Delete block failed.",3);
+                $this->log('block.inc->delete A transaction could not be reversed. Delete block failed. false',0,true);
                 $sql->rollback();
                 $sql->unlock_tables();
                 return false;
@@ -673,7 +753,7 @@ class Blockinc extends base{
 
             $res=$sql->delete('block',array("id='".$x['id']."'"));
             if ($res != 1) {
-                $this->log("Delete block failed.",3);
+                $this->log('block.inc->delete Delete block failed false',0,true);
                 $sql->rollback();
                 $sql->unlock_tables();
                 return false;
@@ -682,7 +762,7 @@ class Blockinc extends base{
 
         $sql->commit();
         $sql->unlock_tables();
-        $this->log("del blocks ".$height." [true]", 3);
+        $this->log('block.inc->delete del blocks'.$height.' true',0,true);
         return true;
     }
 
@@ -703,7 +783,7 @@ class Blockinc extends base{
         if ($res === false) {
             $sql->rollback();
             $sql->unlock_tables();
-            $this->log("A transaction could not be reversed. Delete block ".$id." [false]",3);
+            $this->log('block.inc->delete_block_hash '."A transaction could not be reversed. Delete block ".$id." false",0,true);
             return false;
         }
 
@@ -711,14 +791,14 @@ class Blockinc extends base{
         if ($res != 1) {
             $sql->rollback();
             $sql->unlock_tables();
-            $this->log("Delete block ".$id." [false]",3);
+            $this->log('block.inc->delete_block_hash '."Delete block ".$id." false",0,true);
             return false;
         }
 
 
         $sql->commit();
         $sql->unlock_tables();
-        $this->log("del blocks ".$id." [true]", 3);
+        $this->log('block.inc->delete_block_hash '."del blocks ".$id." true",0,true);
         return true;
     }
 
@@ -773,7 +853,7 @@ class Blockinc extends base{
      );*/
     public function export_for_other_peers($id = "", $height = ""){
         if (empty($id) && empty($height)) {
-            $this->log("export block height and id is empty [false]");
+            $this->log('block.inc->export_for_other_peers export block height and id is empty [false]',0,true);
             return false;
         }
 
@@ -786,7 +866,7 @@ class Blockinc extends base{
         }
 
         if (!$block) {
-            $this->log("export block [false]");
+            $this->log('block.inc->export_for_other_peers export block [false]',0,true);
             return false;
         }
 
@@ -815,7 +895,7 @@ class Blockinc extends base{
         }else{
             $res['from_host']='';
         }
-        $this->log("export block [true]");
+        $this->log('block.inc->export_for_other_peers export block [true]',0,true);
         return $res;
     }
 

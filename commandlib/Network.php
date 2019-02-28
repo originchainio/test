@@ -2,7 +2,7 @@
 /**
  * 
  */
-// version: 20190221 test
+// version: 20190225
 class Network extends base{
 	private static $_instance = null;
 

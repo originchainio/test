@@ -3,7 +3,7 @@
 The MIT License (MIT)
 Copyright (C) 2019 OriginchainDev
 
-originchain.io
+originchain.net
 
 　　Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190128 test
+// version: 20190227
 class Propagateinc extends base{
 	private static $_instance = null;
 	function __construct(){

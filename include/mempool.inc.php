@@ -3,7 +3,7 @@
 The MIT License (MIT)
 Copyright (C) 2019 OriginchainDev
 
-originchain.io
+originchain.net
 
 　　Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190220 test
+// version: 20190226
 class Mempoolinc extends base{
     private static $_instance = null;
     function __construct(){
@@ -39,68 +39,104 @@ class Mempoolinc extends base{
     public function check($x){
         $sql=OriginSql::getInstance();
         $Account=Accountinc::getInstance();
-        //id
 
-        if ($x['id']=='') { $this->log('check id is empty [false]'); return false;   }
+        //id
+        if ($x['id']=='') { 
+            $this->log('mempool.inc->check id false',0,true);
+            return false;
+        }
         if ($x['version']!=111) {
             $hash = $this->hasha($x['dst'],$x['val'],$x['fee'],$x['signature'],$x['version'],$x['message'],$x['date'],$x['public_key']);
             if ($x['id'] != $hash) {
-
-                $this->log('check hash [false]');
+                $this->log('mempool.inc->check hash false',0,true);
                 return false;
             }
         }
         //height
-        if ($x['height']<2) {   $this->log('check height<2 [false]');   return false;   }
+        if ($x['height']<2) {   
+            $this->log('mempool.inc->check height<2 false',0,true);
+            return false;
+        }
         //dst
         if ($x['version']!=2) {
-            if (valid_len($x['dst'],70,128)==false) {   $this->log('check dst address len [false]');   return false;   }
+            if (valid_len($x['dst'],70,128)==false) {
+                $this->log('mempool.inc->check dst address len false',0,true);
+                return false;
+            }
         }elseif($x['version']==2){
-            if (valid_len($x['dst'],4,25)==false) { $this->log('check dst alias len [false]');    return false;   }
+            if (valid_len($x['dst'],4,25)==false) {
+                $this->log('mempool.inc->check dst alias len false',0,true);
+                return false;
+            }
         }
-        if (strlen($x['dst']) < 4) {    $this->log('check dst alias len [false]');  return false;   }
-        if (blacklist::checkalias($x['dst'])) { $this->log('check dst alias blacklist [false]');  return false;   }
-        if (blacklist::checkAddress($x['dst'])) {   $this->log('check dst address blacklist [false]');    return false;   }
+        if (strlen($x['dst']) < 4) {
+            $this->log('mempool.inc->check dst or alias len false',0,true);
+            return false;
+        }
+        if (blacklist::checkalias($x['dst'])) {
+            $this->log('mempool.inc->check alias blacklist false',0,true);
+            return false;
+        }
+        if (blacklist::checkAddress($x['dst'])) {
+            $this->log('mempool.inc->check address blacklist false',0,true);
+            return false;
+        }
 
         //val
-        if ($x['val']-0<0) {    $this->log('check val<0 [false]');  return false;   }
+        if ($x['val']-0<0) {
+            $this->log('mempool.inc->check val<0 false',0,true);
+            return false;
+        }
         //fee
-        if ($x['fee']-0<0) {    $this->log('check fee<0 [false]');  return false;   }
+        if ($x['fee']-0<0) {
+            $this->log('mempool.inc->check fee<0 false',0,true);
+            return false;
+        }
         //signature
         if ($x['version']!=111 and $x['version']!=4) {
             if (!$this->check_signature($x['dst'],$x['val'],$x['fee'],$x['version'],$x['message'],$x['date'],$x['public_key'],$x['signature'])) {
-                $this->log('check sign [false]');
+                $this->log('mempool.inc->check sign false',0,true);
                 return false;
             }
         }
         //version
         if ($x['version']==0 or $x['version']==1 or $x['version']==2 or $x['version']==3 or $x['version']==4 or $x['version']==5 or $x['version']==100 or $x['version']==101 or $x['version']==102 or $x['version']==103 or $x['version']==111) {
         }else{
-            $this->log('check version [false]');
+            $this->log('mempool.inc->check version false',0,true);
             return false;
         }
         //message
         if (strlen($x['message']) > 128) {
-            $this->log('The message must be less than 128 chars [false]');
+            $this->log('mempool.inc->check The message must be less than 128 chars false',0,true);
             return false;
         }
         //date
-        if ($x['date'] < 1511725068) {  $this->log('check date [false]');    return false;   }
-        if ($x['date'] > time() + 86400) {  $this->log('check date [false]');    return false;    }
+        if ($x['date'] < 1511725068) {
+            $this->log('mempool.inc->check date1 false',0,true);
+            return false;
+        }
+        if ($x['date'] > time() + 86400) {
+            $this->log('mempool.inc->check date2 false',0,true);
+            return false;
+        }
         //public
-        // public key must be at least 15 chars / probably should be replaced with the validator function
-        if (strlen($x['public_key']) < 15) {    $this->log('check public key len [false]');   return false;   }
+        if (strlen($x['public_key']) < 15) {
+            $this->log('mempool.inc->check public key len false',0,true);
+            return false;
+        }
         //check from publickey
         if ($x['version']==1 or $x['version']==2 or $x['version']==3 or $x['version']==100 or $x['version']==101 or $x['version']==102 or $x['version']==103) {
-            if ($Account->public_key_alive_from_public($x['public_key'])==false) {  return false;   }
+            if ($Account->public_key_alive_from_public($x['public_key'])==false) {
+                $this->log('mempool.inc->check public key not alive false',0,true);
+                return false;
+            }
         }
         $src=$Account->get_address_from_public_key($x['public_key']);
         //blacklist
         if (blacklist::checkPublicKey($x['public_key']) || blacklist::checkAddress($src)) {
-            $this->log('check public key and address blacklist [false]');
+            $this->log('mempool.inc->check public key and address blacklist false',0,true);
             return false;
         }
-
         //peer
 
         
@@ -111,87 +147,101 @@ class Mempoolinc extends base{
                 return false;
                 break;
             case 1:
-                //正常事务
-                //检查余额够不够检查总额就行，因为打包还要循环检查一次扣一次款,fee是否正确 发送方地址和接收方地址是否存在
                 //message
                 // if ($x['message']!='') {
                 //     return false;
                 // }
                 //fee
                 $fee = $x['val'] * 0.005;
-                if ($fee-$x['fee']!=0) {   return false;  }
+                if (bccomp($fee, $x['fee'], 8)!=0) {
+                    $this->log('mempool.inc->check version:1 fee false',0,true);
+                    return false;
+                }
                 if ($fee < 0.00000001) {    $fee = 0.00000001;  }
 
-                //检查余额
+                //balance
                 $vvv=$this->get_valfee_from_public_key($x['public_key']);
                 if ($res_account_from['balance']-$vvv-$x['val']-$fee<0) {
-                    $this->log('Sorry,your credit is running low');
+                    $this->log('mempool.inc->check version:1 balance not enought false',0,true);
                     return false;
                 }
                 break;
             case 2:
-                //寄给别名的付款
-                //检查余额够不够检查总额就行，因为打包还要循环检查一次扣一次款,fee是否正确 发送方地址和接收方地址是否存在
                 //message
                 // if ($x['message']!='') {
                 //     return false;
                 // }
                 //fee
                 $fee = $x['val'] * 0.005;
-                if ($fee-$x['fee']!=0) {   return false;  }
+                if (bccomp($fee, $x['fee'], 8)!=0) {
+                    $this->log('mempool.inc->check version:2 fee false',0,true);
+                    return false;
+                }
                 if ($fee < 0.00000001) {    $fee = 0.00000001;  }
 
                 //alias
                 if (san(strtolower($x['dst']))!=$x['dst']) {
-                    $this->log('dst is fail');
+                    $this->log('mempool.inc->check version:2 dst false',0,true);
                     return false;
                 }
                 if ($Account->alias_check_blacklist($x['dst'])==true) {
-                    $this->log('dst is blacklist');
+                    $this->log('mempool.inc->check version:2 dst is blacklist false',0,true);
                     return false;
                 }
                 if (strlen($x['dst'])<4||strlen($x['dst'])>25) {
-                    $this->log('dst is 4-25');
+                    $this->log('mempool.inc->check version:2 dst len false',0,true);
                     return false;
                 }
-                if ($Account->alias_alive_from_alias(strtolower($x['dst']))==false) {  $this->log('dst is not alive'); return false; }
-                //检查余额
+                if ($Account->alias_alive_from_alias(strtolower($x['dst']))==false) {
+                    $this->log('mempool.inc->check version:2 dst is not alive false',0,true);
+                    return false;
+                }
+                //balance
                 $vvv=$this->get_valfee_from_public_key($x['public_key']);
                 if ($res_account_from['balance']-$vvv-$x['val']-$fee<0) {
-                    $this->log('Sorry,your credit is running low');
+                    $this->log('mempool.inc->check version:2 balance not enought false',0,true);
                     return false;
                 }
                 break;
             case 3:
-                //增加alias
-                //检查余额够不够检查总额就行，因为打包还要循环检查一次扣一次款,fee是否正确 发送方地址和接收方地址是否存在 alias是否合法
-                //message不能为空且必须小写
                 //fee
-                if (($x['fee']-0)!=10) { $this->log('fee!=10'); return false;  }
-                //检查余额
-                if (0-$x['val']!=0) { $this->log('val!=0'); return false;    }
+                if (($x['fee']-0)!=10) {
+                    $this->log('mempool.inc->check version:3 fee false',0,true);
+                    return false;
+                }
+                //val
+                if (0-$x['val']!=0) {
+                    $this->log('mempool.inc->check version:3 val false',0,true);
+                    return false;
+                }
 
                 //alias
                 $alias=$x['message'];
                 if (san(strtolower($alias))!=$alias) {
-                    $this->log('alias fails ,alisa need strtolower');
+                    $this->log('mempool.inc->check version:3 alias fails,alisa need strtolower false',0,true);
                     return false;
                 }
                 if ($Account->alias_check_blacklist($alias)==true) {
-                    $this->log('alias blacklist');
+                    $this->log('mempool.inc->check version:3 alias blacklist false',0,true);
                     return false;
                 }
                 if (strlen($alias)<4 or strlen($alias)>25) {
-                    $this->log('alias need >4 <25 , this alisa len:'.strlen($alias));
+                    $this->log('mempool.inc->check version:3 alias len false',0,true);
                     return false;
                 }
                 //
-                if ($Account->alias_alive_from_alias(strtolower($x['message']))==true) {  return false; }
-                if ($Account->alias_alive_from_public_key($x['public_key'])==true) {  return false; }
-                //检查余额
+                if ($Account->alias_alive_from_alias(strtolower($x['message']))==true) {
+                    $this->log('mempool.inc->check version:3 alias isnot alive from alias false',0,true);
+                    return false;
+                }
+                if ($Account->alias_alive_from_public_key($x['public_key'])==true) {
+                    $this->log('mempool.inc->check version:3 alias isnot alive from pubkey false',0,true);
+                    return false;
+                }
+                //balance
                 $vvv=$this->get_valfee_from_public_key($x['public_key']);
                 if ($res_account_from['balance']-$vvv-$x['val']-$x['fee']<0) {
-                    $this->log('Sorry,your credit is running low');
+                    $this->log('mempool.inc->check version:3 balance not enought false',0,true);
                     return false;
                 }
                 break;
@@ -199,81 +249,100 @@ class Mempoolinc extends base{
                 return false;
                 break;
             case 100:
-                //增加节点
                 // fee
-                if (0-$x['fee']!=0) {   $this->log('fee is fails'); return false;  }
-                if (0-$x['val']!=0) { $this->log('val is fails'); return false;    }
+                if (0-$x['fee']!=0) {
+                    $this->log('mempool.inc->check version:100 fee false',0,true);
+                    return false;
+                }
+                if (0-$x['val']!=0) {
+                    $this->log('mempool.inc->check version:100 val false',0,true);
+                    return false;
+                }
                 //message
-                if ($x['message']=='') {   $this->log('message is fails'); return false;   }
+                if ($x['message']=='') {
+                    $this->log('mempool.inc->check version:100 message false',0,true);
+                    return false;
+                }
 
-                //检查余额
+                //balance
                 $vvv=$this->get_valfee_from_public_key($x['public_key']);
                 if ($res_account_from['balance']-$vvv-10000-$x['fee']<0) {
-                    $this->log('Sorry,your credit is running low');
+                    $this->log('mempool.inc->check version:100 balance not enought false',0,true);
                     return false;
                 }
                 //message
                 if (strtolower($x['message'])!=$x['message']) {
-                    $this->log('Sorry,your message is not true');
+                    $this->log('mempool.inc->check version:100 message must a lowercase letter false',0,true);
                     return false;
                 }
-                //mn是否存在 只能有一个节点
+                //
                 $res=$sql->select('mn','*',2,array("public_key='".$x['public_key']."'","height<=".$x['height']),'',1);
-                if ($res!=0) {  $this->log('Nodes already exist Cannot continue to add');   return false;   }
+                if ($res!=0) {
+                    $this->log('mempool.inc->check version:100 Nodes already exist Cannot continue to add false',0,true);
+                    return false;
+                }
 
                 $res=$sql->select('mem','*',2,array("public_key='".$x['public_key']."'",'(version=100 or version=103)'),'',1);
-                if ($res!=0) {  $this->log('this mem already add');   return false;   }
+                if ($res!=0) {
+                    $this->log('mempool.inc->check version:100 this mem already add false',0,true);
+                    return false;
+                }
 
-                //需要等待10个块
+                //
                 $res=$sql->select('trx','*',1,array("public_key='".$x['public_key']."'","height<=".$x['height'],'(version=100 or version=103)'),'height desc',1);
                 if ($res and $res['version']!=103) {
-                    $this->log('mn already reg');
+                    $this->log('mempool.inc->check version:100 mn already reg false',0,true);
                     return false;
                 }
 
                 if ($res and $res['version']!=100 and ($x['height']-$res['height']<10)) {
-                    $this->log('need 10 blocks');
+                    $this->log('mempool.inc->check version:100 need 10 blocks false',0,true);
                     return false;
                 }
-                
-
                 break;
             case 101:
-                //暂停节点
-                //节点是否存在 需要至少间隔10个块才可操作
                 break;
             case 102:
-                //开启节点
-                //节点是否存在 需要至少间隔10个块才可操作
                 break;
             case 103:
-                //删除节点
-                //判断mn存在不存在
-                //检查如果以前存在节点 需要等待至少10个块
                 // fee
-                if ($x['fee']!=0) {   return false;  }
+                if (0-$x['fee']!=0) {
+                    $this->log('mempool.inc->check version:103 fee false',0,true);
+                    return false;
+                }
+                if (0-$x['val']!=0) {
+                    $this->log('mempool.inc->check version:103 val false',0,true);
+                    return false;
+                }
                 //message
-                if ($x['message']=='') {   return false;   }
-
-                //mn是否存在
+                if ($x['message']=='') {
+                    $this->log('mempool.inc->check version:103 message false',0,true);
+                    return false;
+                }
+                //
                 $res=$sql->select('mn','*',2,array("public_key='".$x['public_key']."'","height<=".$x['height']),'',1);
-                if ($res!=1) {  $this->log('Nodes Non-existent');  return false;   }
+                if ($res!=1) {
+                    $this->log('mempool.inc->check version:103 Nodes Non-existent false',0,true);
+                    return false;
+                }
 
                 $res=$sql->select('mem','*',2,array("public_key='".$x['public_key']."'",'(version=100 or version=103)'),'',1);
-                if ($res!=0) {  $this->log('this mem already add');   return false;   }
-                //需要等待10个块
+                if ($res!=0) {
+                    $this->log('mempool.inc->check version:103 this mem already add false',0,true);
+                    return false;
+                }
+                //
                 $res=$sql->select('trx','*',1,array("public_key='".$x['public_key']."'","height<=".$x['height'],'(version=100 or version=103)'),'height desc',1);
                 if ($res and $res['version']!=100) {
-                    $this->log('mn no reg');
+                    $this->log('mempool.inc->check version:103 mn not reg false',0,true);
                     return false;
                 }
                 if ($res and $res['version']!=103 and ($x['height']-$res['height']<10)) {
-                    $this->log('need 10 blocks');
+                    $this->log('mempool.inc->check version:103 need 10 blocks false',0,true);
                     return false;
                 }
                 break;
             case 111:
-                //升级节点状态 不检查不打包
                 return false;
                 break;
             default:
@@ -285,20 +354,24 @@ class Mempoolinc extends base{
         //host
         if ($x['version']==100 or $x['version']==101 or $x['version']==102 or $x['version']==103) {
              if (san_host($x['message'])!=$x['message']) {
-                 $this->log('message fails');
-                 return false;
+                $this->log('mempool.inc->check message false',0,true);
+                return false;
              }
         }
         // make sure it's not already in mempool
         $res = $sql->select('mem','*',2,array("id='".$x['id']."'"),'',1);
-        if ($res!=0) { $this->log('make sure its not already in mempool'); return false;   }
+        if ($res!=0) {
+            $this->log('mempool.inc->check mem already in mempool false',0,true);
+            return false;
+        }
         // make sure the transaction is not already on the blockchain
         $res = $sql->select('trx','*',2,array("id='".$x['id']."'"),'',1);
-        if ($res!=0) { $this->log('make sure the transaction is not already on the blockchain'); return false;   }
-
-        $this->log('check mempool [true]',3);
+        if ($res!=0) {
+            $this->log('mempool.inc->check mem already in trx db false',0,true);
+            return false;
+        }
+        $this->log('mempool.inc->check check mempool true',1,true);
         return true;
-
     }
 
 
@@ -309,10 +382,9 @@ class Mempoolinc extends base{
 
         $res=$sql->select('mem','*',1,array('id="'.$id.'"'),'',1);
         if ($res) {
-            $this->log('get a mempool data [true]');
             return $res;
         }else{
-            $this->log('get a mempool data [false]');
+            $this->log('mempool.inc->get_mempool_from_id false',0,true);
             return false;
         }
 
@@ -323,10 +395,9 @@ class Mempoolinc extends base{
     public function get_mempool_transaction_for_news($height,$max){
         $sql=OriginSql::getInstance();
         
-        $this->log('returns X  transactions from mempool');
         $res=$sql->select('mem','*',0,array('height<='.$height),'height ASC',0);
         if ($res===false) {
-            $this->log('returns a mempool data [false]');
+            $this->log('mempool.inc->get_mempool_transaction_for_news returns a mempool data false',0,true);
             return false;
         }
 
@@ -339,7 +410,7 @@ class Mempoolinc extends base{
 
             foreach ($res as $x) {
                 if (empty($x['public_key'])) {
-                    $this->log('returns X  public_key is empty');
+                    $this->log('mempool.inc->get_mempool_transaction_for_news public_key is empty false',1,true);
                     continue;
                 }
 
@@ -353,22 +424,26 @@ class Mempoolinc extends base{
 
                 if ($res==true) {
                     $sql->delete('mem',array("id='".$x['id']."'"));
-                    continue; //duplicate transaction
+                    continue;
                 }
 
                 $res = $Account->get_balance_from_public_key($x['public_key']);
 
                 if (!$res or $res<=0) {
-                    $this->log('get_balance_from_public_key is 0 or fail');
+                    //$this->log('mempool.inc->get_mempool_transaction_for_news get_balance_from_public_key is 0 or fail false',1,true);
                     continue;
                 }
 
                 if ($res and ($res-$balance[$x['public_key']]<0)) {
-                    $this->log('get_balance_from_public_key balance is 0');
+                    //$this->log('mempool.inc->get_mempool_transaction_for_news get_balance_from_public_key balance is <0 false',1,true);
                     continue;
                 }
-
-                $transactions[] = $x;
+                if ($this->check($x)==true) {
+                    $transactions[] = $x;
+                }else{
+                    continue;
+                }
+                
                 if (count($transactions)>=$max) {
                     break;
                 }
@@ -387,9 +462,6 @@ class Mempoolinc extends base{
         }
 
     }
-
-
-    // add a new transaction to mempool and lock it with the current height
     public function add_mempool($height,$dst,$val,$fee,$signature,$version,$message,$public_key,$date, $peer = ''){
         $sql=OriginSql::getInstance();
         $id=$this->hasha($dst,$val,$fee,$signature,$version,$message,$date,$public_key);
@@ -407,15 +479,14 @@ class Mempoolinc extends base{
                                 'peer'=>$peer
         ));
         if ($res) {
-            $this->log('add a new transaction to mempool [true]',1);
             return true;
         }else{
-            $this->log('add a new transaction to mempool [false]',1);
+            $this->log('mempool.inc->add_mempool add a new transaction to mempool false',1,true);
             return false;
         }
         
     }
-    // sign a transaction
+    //sign
     public function signature($dst,$val,$fee,$version,$message,$date,$public_key, $private_key){
         $val=number_format($val, 8, '.', '');
         $fee=number_format($fee, 8, '.', '');
@@ -423,13 +494,12 @@ class Mempoolinc extends base{
         $signature = ec_sign($info, $private_key);
         return $signature;
     }
-    // checks the ecdsa secp256k1 signature for a specific public key
     public function check_signature($dst,$val,$fee,$version,$message,$date,$public_key, $signature){
         $val=number_format($val, 8, '.', '');
         $fee=number_format($fee, 8, '.', '');
         return ec_verify("{$dst}-{$val}-{$fee}-{$version}-{$message}-{$date}-{$public_key}", $signature, $public_key);
     }
-    //ok
+    //hash
     public function hasha($dst,$val,$fee,$signature,$version,$message,$date,$public_key){
         $val=number_format($val, 8, '.', '');
         $fee=number_format($fee, 8, '.', '');
@@ -437,21 +507,18 @@ class Mempoolinc extends base{
         $hash = hash("sha512", $info);
         return hex2coin($hash);
     }
-
     //del than days
     public function delete_than_days($days){
         $timee=time()-($days*3600*24);
         $sql=OriginSql::getInstance();
         $res=$sql->delete('mem',array("`date`<".$timee));
         if ($res) {
-            $this->log('del mempool than days [true]');
             return true;
         }else{
-            $this->log('del mempool than days [false]');
+            $this->log('mempool.inc->delete_than_days del mempool than days false',1,true);
             return false;
         }
     }
-
     //get val+fee
     public function get_valfee_from_public_key($public_key){
         $sql=OriginSql::getInstance();
@@ -462,7 +529,6 @@ class Mempoolinc extends base{
         }else{
             return 0;
         }
-        // return number_format($res, 8, ".", "");
     }
 
 

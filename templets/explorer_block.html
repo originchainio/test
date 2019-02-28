@@ -41,8 +41,13 @@ table.gridtable td {
 <tr><td>difficulty</td><td><?=$b['difficulty']?></td></tr>
 <tr><td>argon</td><td><?=$b['argon']?></td></tr>
 <tr><td>trx_count</td><td><?=$b['transactions']?></td></tr>
-</table>
 
+<tr><td>max_reward</td><td><?=$reward_nofee['max_reward']?>&nbsp;(No handling fee)</td></tr>
+<tr><td>destroy_reward</td><td><?=$reward_nofee['destroy_reward']?>&nbsp;(Not calculating Mn loss)</td></tr>
+<tr><td>miner_reward</td><td><?=$reward_nofee['miner_reward']?>&nbsp;(No handling fee)</td></tr>
+<tr><td>mn_reward</td><td><?=$reward_nofee['mn_reward']?>&nbsp;(No handling fee)</td></tr>
+</table>
+</br>
 	<table class="gridtable">
 		<tr>
 			<th>HASH</th>

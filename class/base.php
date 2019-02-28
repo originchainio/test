@@ -3,7 +3,7 @@
 The MIT License (MIT)
 Copyright (C) 2019 OriginchainDev
 
-originchain.io
+originchain.net
 
 　　Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the "Software"),
@@ -22,17 +22,21 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190213 test
+// version: 20190225 test
 class base
 {
     public $config = array();
     public $info = array();
     function __construct()
     {
-        $this->config = (include __DIR__ . '../../config/config.php');
+        $this->config = include __DIR__ . '../../config/config.php';
+        if ($this->config['init']==false) {
+            echo 'init is false';
+            exit;
+        }
         $this->info['cli'] = $this->is_cli();
         //$this->info['hostname']=$this->get_hostname();
-        $this->info['version'] = 'Version 1.0 Build 20181209';
+        $this->info['version'] = 'Version 1.0 Build 20190227';
         $this->CheckBase();
     }
     private function __clone()
@@ -103,20 +107,24 @@ class base
         return $hostname;
     }
     // The log code comes from arionum https://github.com/arionum/node
-    public function log($data, $verbosity = 0){
+    public function log($data,$verbosity = 0,$result=true){
         if ($verbosity==='') {
             $verbosity = 0;
         }
         if ($this->config['log_verbosity'] > $verbosity) {
             return;
         }
+        if ($result==false) {
+            $data='error: '.$data;
+        }
         $date = date("[Y-m-d H:i:s]");
+
         $trace = debug_backtrace();
         $loc = count($trace) - 1;
         $file = substr($trace[$loc]['file'], strrpos($trace[$loc]['file'], "/") + 1);
         $res = "{$date} " . $file . ":" . $trace[$loc]['line'];
         if (!empty($trace[$loc]['class'])) {
-            $res .= "---" . $trace[$loc]['class'];
+            $res .= "-" . $trace[$loc]['class'];
         }
         if (!empty($trace[$loc]['function']) && $trace[$loc]['function'] != '_log') {
             $res .= '->' . $trace[$loc]['function'] . '()';
@@ -124,9 +132,10 @@ class base
         $res .= " {$data} \n";
         //echo $res;
         @file_put_contents(__DIR__ . '../../log/'.$this->config['log_file'], $res, FILE_APPEND);
-        // if ($this->config['enable_logging'] == true && $this->config['log_verbosity'] >= $verbosity) {
-        //     @file_put_contents($this->config['log_file'], $res, FILE_APPEND);
-        // }
+        if ($result==false) {
+            @file_put_contents(__DIR__ . '../../log/'.$this->config['log_file_error'], $res, FILE_APPEND);
+        }
+
     }
     public function return_json($result,$error=''){
         return json_encode(array(

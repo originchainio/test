@@ -3,7 +3,6 @@ class MainSQLpdo{
     private static $_instance = null;
     private $_db;
     protected $res;
-    /*构造函数*/
     private function __construct(){
     }
 	private function __clone()  
@@ -17,18 +16,13 @@ class MainSQLpdo{
         }
         return self::$_instance;
     }
-    /*数据库连接*/
     public function connect($config){
 
         $this->_db = new PDO('mysql:host='.$config['host'].';dbname='.$config['dbname'].';charset=utf8mb4', $config['user'], $config['pwd']);
         // $this->_db->query('set names utf8;');
-        //把结果序列化成stdClass
         //$this->_db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
-        //自己写代码捕获Exception
         $this->_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);    
     }
-     
-    /*数据库关闭*/
     public function close(){
         $this->_db = null;
     }
@@ -75,33 +69,33 @@ class MainSQLpdo{
     public function lastInsertId(){
         return $this->res->lastInsertId();
     }
-     
+
     /**
-     * 参数说明
-     * int              $debug      是否开启调试，开启则输出sql语句
-     *                              0   不开启
-     *                              1   开启
-     *                              2   开启并终止程序
-     * int              $mode       返回类型
-     *                              0   返回多条记录
-     *                              1   返回单条记录
-     *                              2   返回行数
-     * string/array     $table      数据库表，两种传值模式
-     *                              普通模式：
+     * 
+     * int              $debug      debug
+     *                              0   not open
+     *                              1   open
+     *                              2   open and exit
+     * int              $mode       return mode
+     *                              0   return more
+     *                              1   return one
+     *                              2   return count
+     * string/array     $table      table
+     *                              normal
      *                              'tb_member, tb_money'
-     *                              数组模式：
+     *                              arr mode
      *                              array('tb_member', 'tb_money')
-     * string/array     $fields     需要查询的数据库字段，允许为空，默认为查找全部，两种传值模式
-     *                              普通模式：
+     * string/array     $fields     
+     *                              normal
      *                              'username, password'
-     *                              数组模式：
+     *                              arr mode
      *                              array('username', 'password')
-     * string/array     $sqlwhere   查询条件，允许为空，两种传值模式
-     *                              普通模式：
+     * string/array     $sqlwhere   
+     *                              normal
      *                              'and type = 1 and username like "%os%"'
-     *                              数组模式：
+     *                              arr mode
      *                              array('type = 1', 'username like "%os%"')
-     * string           $orderby    排序，id desc
+     * string           $orderby    orderby :id desc
      */
     public function select($canshu){
         $debug=$canshu['debug'];
@@ -122,7 +116,6 @@ class MainSQLpdo{
         }else{
             $limit="";
         }
-        //参数处理
         if(is_array($table)){
             $table = implode(', ', $table);
         }
@@ -138,7 +131,6 @@ class MainSQLpdo{
         if($orderby!==""){
             $orderby=' order by '.$orderby;
         }
-        //数据库操作
         if($debug === 0){
             if($mode === 2){
                 if ($this->query("select count(*) from $table where 1=1 $sqlwhere")) {
@@ -175,26 +167,26 @@ class MainSQLpdo{
             }
         }
     }
-     
+
     /**
-     * 参数说明
-     * int              $debug      是否开启调试，开启则输出sql语句
-     *                              0   不开启
-     *                              1   开启
-     *                              2   开启并终止程序
-     * int              $mode       返回类型
-     *                              0   无返回信息
-     *                              1   返回执行条目数
-     *                              2   返回最后一次插入记录的id
-     * string/array     $table      数据库表，两种传值模式
-     *                              普通模式：
+     * 
+     * int              $debug      debug
+     *                              0   not open
+     *                              1   open
+     *                              2   open and exit
+     * int              $mode       return mode
+     *                              0   null
+     *                              1   return count
+     *                              2   return id
+     * string/array     $table      table
+     *                              normal
      *                              'tb_member, tb_money'
-     *                              数组模式：
+     *                              arr mode
      *                              array('tb_member', 'tb_money')
-     * string/array     $set        需要插入的字段及内容，两种传值模式
-     *                              普通模式：
+     * string/array     $set        
+     *                              normal
      *                              'username = "test", type = 1, dt = now()'
-     *                              数组模式：
+     *                              arr mode
      *                              array('username = "test"', 'type = 1', 'dt = now()')
      */
     public function insert($canshu){
@@ -202,15 +194,12 @@ class MainSQLpdo{
         $mode=$canshu['mode'];
         $table=$canshu['table'];
         $set=$canshu['set'];
-
-        //参数处理
         if(is_array($table)){
             $table = implode(', ', $table);
         }
         if(is_array($set)){
             $set = implode(', ', $set);
         }
-        //数据库操作
         if($debug === 0){
             if($mode === 2){
                 if ($this->query("insert into $table set $set")) {
@@ -239,30 +228,30 @@ class MainSQLpdo{
             }
         }
     }
-     
+
     /**
-     * 参数说明
-     * int              $debug      是否开启调试，开启则输出sql语句
-     *                              0   不开启
-     *                              1   开启
-     *                              2   开启并终止程序
-     * int              $mode       返回类型
-     *                              0   无返回信息
-     *                              1   返回执行条目数
-     * string           $table      数据库表，两种传值模式
-     *                              普通模式：
+     * 
+     * int              $debug      debug
+     *                              0   not open
+     *                              1   open
+     *                              2   open and exit
+     * int              $mode       return mode
+     *                              0   null
+     *                              1   return count
+     * string           $table      table
+     *                              normal
      *                              'tb_member, tb_money'
-     *                              数组模式：
+     *                              arr mode
      *                              array('tb_member', 'tb_money')
-     * string/array     $set        需要更新的字段及内容，两种传值模式
-     *                              普通模式：
+     * string/array     $set        update
+     *                              normal
      *                              'username = "test", type = 1, dt = now()'
-     *                              数组模式：
+     *                              arr mode
      *                              array('username = "test"', 'type = 1', 'dt = now()')
-     * string/array     $sqlwhere   修改条件，允许为空，两种传值模式
-     *                              普通模式：
+     * string/array     $sqlwhere   
+     *                              normal
      *                              'and type = 1 and username like "%os%"'
-     *                              数组模式：
+     *                              arr mode
      *                              array('type = 1', 'username like "%os%"')
      */
     public function update($canshu){
@@ -271,8 +260,6 @@ class MainSQLpdo{
         $table=$canshu['table'];
         $set=$canshu['set'];
         $sqlwhere=$canshu['sqlwhere'];
-
-        //参数处理
         if(is_array($table)){
             $table = implode(', ', $table);
         }
@@ -282,7 +269,6 @@ class MainSQLpdo{
         if(is_array($sqlwhere)){
             $sqlwhere = ' and '.implode(' and ', $sqlwhere);
         }
-        //数据库操作
         if($debug === 0){
             if($mode === 1){
                 if ($this->exec("update $table set $set where 1=1 $sqlwhere")) {
@@ -307,19 +293,19 @@ class MainSQLpdo{
     }
      
     /**
-     * 参数说明
-     * int              $debug      是否开启调试，开启则输出sql语句
-     *                              0   不开启
-     *                              1   开启
-     *                              2   开启并终止程序
-     * int              $mode       返回类型
-     *                              0   无返回信息
-     *                              1   返回执行条目数
-     * string           $table      数据库表
-     * string/array     $sqlwhere   删除条件，允许为空，两种传值模式
-     *                              普通模式：
+     * 
+     * int              $debug      debug
+     *                              0   not open
+     *                              1   open
+     *                              2   open and exit
+     * int              $mode       return mode
+     *                              0   null
+     *                              1   return count
+     * string           $table      table
+     * string/array     $sqlwhere   del
+     *                              normal
      *                              'and type = 1 and username like "%os%"'
-     *                              数组模式：
+     *                              arr mode
      *                              array('type = 1', 'username like "%os%"')
      */
     public function delete($canshu){
@@ -327,11 +313,9 @@ class MainSQLpdo{
         $mode=$canshu['mode'];
         $table=$canshu['table'];
         $sqlwhere=$canshu['sqlwhere'];
-        //参数处理
         if(is_array($sqlwhere)){
             $sqlwhere = ' and '.implode(' and ', $sqlwhere);
         }
-        //数据库操作
         if($debug === 0){
             if($mode === 1){
                 //echo "delete from $table where 1=1 $sqlwhere\n";

@@ -2,7 +2,7 @@
 /**
  * 
  */
-// version: 20190220 test
+// version: 20190225
 class Masternode extends base{
 	private static $_instance = null;
 

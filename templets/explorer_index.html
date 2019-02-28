@@ -30,6 +30,32 @@ table.gridtable td {
 </head>
 <body>
 	<h1>origin explorer</h1>
+
+
+	<table class="gridtable">
+		<tr>
+			<th>HEIGHT</th>
+			<th>MAX REWARD</th>
+			<th>DESTROY</th>
+			<th>DATE</th>
+
+<!--  			<th>ALL COIN NUMBER</th>
+			<th>ALL COIN REAL NUMBER</th>
+			<th>ALL DESTROY NUMBER</th>  -->
+		</tr>
+		<tr>
+			<td><?=$current['height']?></td>
+			<td><?=$reward_nofee['max_reward']?></td>
+			<td><?=$reward_nofee['destroy_reward']?></td>
+			<td><?=date("Y-m-d H:i",$current['date'])?></td>
+
+<!-- 			<td><?=$explorer_all_reward['max_reward']?></td>
+			<td><?=$explorer_all_reward['real_reward']?></td>
+			<td><?=$explorer_all_reward['destroy']?></td> -->
+		</tr>
+	</table>
+</br>
+
 	<table class="gridtable">
 		<tr>
 			<th>HEIGHT</th>

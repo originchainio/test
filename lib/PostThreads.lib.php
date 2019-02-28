@@ -43,8 +43,6 @@ function postT_peer_post($url, $json_post_data, $timeout = 60){
             return false;
         }
         $res = json_decode($result, true);
-
-        // the function will return false if something goes wrong
         if ($res['status'] == "ok" || $res['coin'] == 'origin') {
             return $res['data'];
         }else{

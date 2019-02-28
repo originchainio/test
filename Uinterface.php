@@ -1,5 +1,5 @@
 <?php
-// version: 20190216 test
+// version: 20190227
 include __DIR__.'/class/base.php';
 include __DIR__.'/include/account.inc.php';
 include __DIR__.'/include/blacklist.inc.php';
@@ -118,5 +118,6 @@ class Uinterface extends base{
     }
 
 }
+date_default_timezone_set("UTC");
 $Uinterface=new Uinterface();
 $Uinterface->main();

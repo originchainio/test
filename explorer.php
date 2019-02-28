@@ -1,5 +1,5 @@
 <?php
-// version: 20190131 test
+// version: 20190131
 include __DIR__.'/class/base.php';
 include __DIR__.'/include/account.inc.php';
 include __DIR__.'/include/blacklist.inc.php';
@@ -11,6 +11,7 @@ include __DIR__.'/include/peer.inc.php';
 include __DIR__.'/include/transaction.inc.php';
 // include __DIR__.'/include/propagate.inc.php';
 include __DIR__.'/class/MainSQLpdo.php';
+include __DIR__.'/class/cache.php';
 include __DIR__.'/lib/OriginSql.lib.php';
 // include __DIR__.'/lib/PostThreads.lib.php';
 include __DIR__.'/lib/Security.lib.php';
@@ -56,12 +57,38 @@ class explorer extends base{
 		if ($next_page>$all_page_number) {
 			$next_page=0;
 		}
-		//
+		//reward
+		$reward_nofee=$block->reward_nofee($current['height']);
+
+		////Performance problems
+		// $explorer_all_reward=cache::get('explorer_all_reward');
+		// if ($explorer_all_reward==false) {
+		// 	cache::set('explorer_all_reward',array('height'=>1,'max_reward'=>'0','destroy'=>'0','real_reward'=>'0'),0);
+		// }
+		// if ($explorer_all_reward['height']<$current['height']) {
+		// 	for ($i=$explorer_all_reward['height']+1; $i <= $current['height']; $i++) { 
+		// 		$caches_re=$block->reward_nofee($explorer_all_reward['height']+1);
+		// 		$explorer_all_reward['height']=$explorer_all_reward['height']+1;
+
+		// 		$explorer_all_reward['max_reward']=bcadd($explorer_all_reward['max_reward'],$caches_re['max_reward'],8);
+
+		// 		$explorer_all_reward['destroy']=bcadd($explorer_all_reward['destroy'],$caches_re['destroy_reward'],8);
+
+		// 		$a=bcadd($explorer_all_reward['real_reward'],$caches_re['mn_reward'],8);
+		// 		$b=bcadd($a,$caches_re['miner_reward'],8);
+		// 		$explorer_all_reward['real_reward']=$b;
+		// 	}
+		// 	cache::set('explorer_all_reward',$explorer_all_reward,0);
+		// }
+
+
 		include $this->echo_display('explorer_index');
 	}
 	public function block($block_id){
 		$sql=OriginSql::getInstance();
 		$acc=Accountinc::getInstance();
+		$Blockinc=Blockinc::getInstance();
+
 		$b=$sql->select('block','*',1,array("id='".$block_id."'"),'',1);
 		if ($b==false) {
 			echo 'error';	exit;
@@ -72,6 +99,8 @@ class explorer extends base{
 				$trx_list[$key]['from_address']=$acc->get_address_from_public_key($value['public_key']);
 			}
 		}
+
+		$reward_nofee=$Blockinc->reward_nofee($b['height']);
 		include $this->echo_display('explorer_block');
 	}
 	// public function transaction_list($block_id){
@@ -110,7 +139,7 @@ class explorer extends base{
 
     }
 }
-
+date_default_timezone_set("UTC");
 $explorer=new explorer;
 if (!isset($_GET['q'])) {	$q='';	}else{
 	$q = trim($_GET['q']);

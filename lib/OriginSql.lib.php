@@ -204,17 +204,17 @@ class OriginSql{
 
 		$db=MainSQLpdo::getInstance();
 		$canshu = array(
-		    'debug' => 0,  //0=不开启 1=开启 2=开启并终止程序
-		    'mode' => 1, //0=无返回信息 1=返回执行条目数 2=返回最后一次插入记录的id
+		    'debug' => 0,
+		    'mode' => 1,
 		    'table' => $table,
 		    'set' => $set,
 		 );
 		return $db->insert($canshu);
 	}
 
-	// 'mode' => 1, //0=多条 1=单条 2=返回行数
+	// 'mode' => 1, //0=more 1=one 2=line
 	// 'fields' => '*',
-	// 'limit' => 1,  // mode=0时有效 0=返回所有 其余数字按照规格
+	// 'limit' => 1,  
 	public function select($table,$fields='*',$mode=1,$sqlwhere=array(),$orderby='',$limit=1){
 		if ($fields==='') {
 			$fields='*';
@@ -232,13 +232,13 @@ class OriginSql{
 
 		$db=MainSQLpdo::getInstance();
 		$canshu = array(
-		    'debug' => 0,  //0=不开启 1=开启 2=开启并终止程序
-		    'mode' => $mode, //0=多条 1=单条 2=返回行数
+		    'debug' => 0,
+		    'mode' => $mode,
 		    'table' => $table,
 		    'fields' => $fields,
 		    'sqlwhere' => $sqlwhere,
 		    'orderby' =>$orderby,
-		    'limit' => $limit,  // mode=0时有效 0=返回所有 其余数字按照规格
+		    'limit' => $limit,
 
 		 );
 		return $db->select($canshu);
@@ -286,8 +286,8 @@ class OriginSql{
 
 		$db=MainSQLpdo::getInstance();
 		$canshu = array(
-		    'debug' => 0,  //0=不开启 1=开启 2=开启并终止程序
-		    'mode' => 1, //0=无返回信息 1=返回执行条目数
+		    'debug' => 0,
+		    'mode' => 1,
 		    'table' => $table,
 		    'set' => $set,
 		    'sqlwhere' => $sqlwhere,
@@ -304,8 +304,8 @@ class OriginSql{
 
 		$db=MainSQLpdo::getInstance();
 		$canshu = array(
-		    'debug' => 0,  //0=不开启 1=开启 2=开启并终止程序
-		    'mode' => 1, //0=无返回信息 1=返回执行条目数
+		    'debug' => 0,
+		    'mode' => 1,
 		    'table' => $table,
 		    'sqlwhere' => $sqlwhere,
 

@@ -1,5 +1,5 @@
 <?php
-// version: 20190215 test
+// version: 20190227
 include __DIR__.'/class/base.php';
 include __DIR__.'/include/account.inc.php';
 include __DIR__.'/include/blacklist.inc.php';
@@ -30,7 +30,6 @@ class sync extends base{
 	private function check_lock(){
 		$res=cache::get('sync_lock');
 		if ($res=='lock') {
-			$this->log('sync____lock');
 			die("Sync lock\n");
 		}
 	}
@@ -48,7 +47,7 @@ class sync extends base{
 		$this->check_lock();
 		//set new lock
 		$this->set_new_lock();
-		$this->log("Starting sync");
+		$this->log('sync->main Starting sync',0,true);
 
 		$peer=Peerinc::getInstance();
 		$block = Blockinc::getInstance();
@@ -312,7 +311,7 @@ class sync extends base{
 
 		//re send local mem
 		$res=$sql->select('mem','id',0,array("peer='local'"),'height asc',120);
-		$this->log('rebroadcast locals mempool');
+		$this->log('sync->main rebroadcast locals mempool',0,true);
 		foreach ($res as $key => $value) {
 			$sql->update('mem',array('height'=>$current['height']),array("id='".$value['id']."'"));
 	        $cmd=$sec->cmd($this->config['php_path'].'php send.php',['transaction',$value['id']]);
@@ -320,7 +319,7 @@ class sync extends base{
 		}
 		//re send no local mem
 		$res=$sql->select('mem','id',0,array("peer!='local'"),'height asc',120);
-		$this->log('rebroadcast peer mempool');
+		$this->log('sync->main rebroadcast peer mempool',0,true);
 		foreach ($res as $key => $value) {
 			$sql->update('mem',array('height'=>$current['height']),array("id='".$value['id']."'"));
 	        $cmd=$sec->cmd($this->config['php_path'].'php send.php',['transaction',$value['id']]);
@@ -334,33 +333,30 @@ class sync extends base{
 		//clean tmp files
 
 		//recheck the last blocks
-		$this->log("Rechecking blocks");
+		$this->log('sync->main Rechecking blocks',0,true);
 		
 		echo "All checked blocks are ok\n";
-		$this->log("Finishing sanity");
-
+		$this->log('sync->main Finishing sync',0,true);
 		$this->un_lock();
 	}
 
 	// The Microrectification code comes from arionum https://github.com/arionum/node
 	// Modify partial logic
 	public function Microrectification($from_host){
-		$block = Blockinc::getInstance();
 		$Peerinc=Peerinc::getInstance();
+        if ($Peerinc->get_peer_count_from_hostname($from_host)==false) {
+            echo "Invalid node\n";
+		    exit;
+        }
+        $block = Blockinc::getInstance();
 		$current=$block->current();
 		//check lock
 		$this->check_lock();
 		//set new lock
 		$this->set_new_lock();
-        // the microsanity runs only against 1 specific peer
-        if ($Peerinc->get_peer_count_from_hostname($from_host)==false) {
-            echo "Invalid node - $arg2\n";
-		    $this->un_lock();
-		    exit;
-        }
 
+        //post
         $data = $Peerinc->peer_post($from_host."/peer.php?q=getBlock",["height" => $current['height']]);
-
         if (!$data) {
             echo "Invalid getBlock result\n";
 		    $this->un_lock();
@@ -375,54 +371,128 @@ class sync extends base{
 		    exit;
         }
 
-        // transform the first 12 chars into an integer and choose the blockchain with the biggest value
-        $no1 = hexdec(substr(coin2hex($current['id']), 0, 12));
-        $no2 = hexdec(substr(coin2hex($data['data']['id']), 0, 12));
-
-        if (gmp_cmp($no1, $no2) != -1) {
+        //
+        if ($data['data']['transactions']<$current['transactions']) {
             echo "Block hex larger than current\n";
 		    $this->un_lock();
 		    exit;
         }
-        
+
+        //
+        if ($data['data']['transactions']==$current['transactions']) {
+        	$r=$peer->get_peer_max($this->config['max_peer']);
+
+
+        	$block_id_arr=[];
+        	$block_host_arr=[];
+        	$max_block_id='';
+        	$max_block_id_num=0;
+        	foreach ($r as $key => $value) {
+        		$dataa = $Peerinc->peer_post($value['hostname']."/peer.php?q=getBlock",["height" => $current['height']]);
+        		if ($dataa) {
+
+        			if (!isset($block_id_arr[$dataa['data']['id']])) {
+        				$block_id_arr[$dataa['data']['id']]=0;
+        			}else{
+        				$block_id_arr[$dataa['data']['id']]++;
+        			}
+
+        			if (!isset($block_host_arr[$dataa['data']['id']])) {
+        				$block_host_arr[$dataa['data']['id']]=[$value['hostname']];
+        			}else{
+        				$block_host_arr[$dataa['data']['id']][]=$value['hostname'];
+        			}
+
+        			if ($block_id_arr[$dataa['data']['id']]>=$max_block_id_num) {
+        				$max_block_id_num=$block_id_arr[$dataa['data']['id']];
+        				$max_block_id=$dataa['data']['id'];
+        			}
+        		}
+        	}
+        	//
+        	if ($current['id']==$max_block_id) {
+	            echo "no need pop\n";
+			    $this->un_lock();
+			    exit;
+        	}
+
+        	if ($current['id']!=$max_block_id and $max_block_id!=$data['data']['id']) {
+        		foreach ($block_host_arr[$max_block_id] as $value) {
+        			$dataaa = $Peerinc->peer_post($value['hostname']."/peer.php?q=getBlock",["height" => $current['height']]);
+        			if ($dataaa) {
+        				$data=$dataaa;
+        				break;
+        			}
+        		}
+        	}
+
+        	if ($current['id']!=$max_block_id and $max_block_id==$data['data']['id']) {
+        		
+        	}
+
+
+        }
+        //check
         if (!$block->check($data)) {
             echo "block check false\n";
 		    $this->un_lock();
 		    exit;
         }
 
+        // add the new block
+        echo "Starting to sync last block from ".$from_host."\n";
+
+
+        //check trx
+        foreach ($data['trx_data'] as $valueee) {
+            if ($valueee['height']!=$data['data']['height']) {
+            	$this->log('sync->Microrectification check trx height is false',0,true);
+                $this->echo_display_json(false,'check trx height is false');
+                exit;
+            }
+            if ($valueee['block']!=$data['data']['id']) {
+            	$this->log('sync->Microrectification check trx block is false',0,true);
+                $this->echo_display_json(false,'check trx block is false');
+                exit;
+            }
+        }
+
         // delete the last block
         $block->pop(1);
         cache::set('validfork',$data['data']['height'],0);
+        
+        $res = $block->add(
+            $data['miner_public_key'],
+            $data['data']['height'],
+            $data['data']['nonce'],
+            $data['trx_data'],
+            $data['data']['date'],
+            $data['data']['difficulty'],
+            $data['data']['signature'],
+            $data['miner_reward_signature'],
+            $data['mn_reward_signature'],
+            $data['data']['argon']
+        );
 
-        // add the new block
-        echo "Starting to sync last block from $x[hostname]\n";
-        $sql=OriginSql::getInstance();
-        $res = $sql->add('block',array(
-                                    'id'=>$data['data']['id'],
-                                    'generator'=>$data['data']['generator'],
-                                    'height'=>$data['data']['height'],
-                                    'date'=>$data['data']['date'],
-                                    'nonce'=>$data['data']['nonce'],
-                                    'signature'=>$data['data']['signature'],
-                                    'difficulty'=>$data['data']['difficulty'],
-                                    'argon'=>$data['data']['argon'],
-                                    'transactions'=>$data['data']['transactions']
-        ));
         if (!$res) {
-            $this->log("Block add: could not add block - ".$data['data']['height']);
+        	$this->log('sync->Microrectification add block false',0,true);
 	    	$this->un_lock();
 	    	exit;
         }
-        $this->log("Synced block from $host - ".$data['data']['height']);
+        $this->log('sync->Microrectification Synced block from '.$from_host.'-'.$data['data']['height'],0,true);
 	    $this->un_lock();
 	    exit;
 	}
 	// The Microsynchronization code comes from arionum https://github.com/arionum/node
 	// Modify partial logic
 	public function Microsynchronization($from_host,$end_height){
-		$block = Blockinc::getInstance();
 		$Peerinc=Peerinc::getInstance();
+        // 
+        if ($Peerinc->get_peer_count_from_hostname($from_host)==false) {
+            echo "Invalid node\n";
+		    exit;
+        }
+		$block = Blockinc::getInstance();
 		$current=$block->current();
 		//check lock
 		$this->check_lock();
@@ -437,7 +507,7 @@ class sync extends base{
 			$data = $Peerinc->peer_post($from_host."/peer.php?q=getBlock",["height" => $i]);
 			//echo_array($data);
 	        if (!$data) {
-	        	$this->log("Invalid getBlock result");
+	        	$this->log('sync->Microsynchronization Invalid getBlock result false',0,true);
 	            echo "Invalid getBlock result\n";
 	            break;
 	        }
@@ -447,7 +517,7 @@ class sync extends base{
 
 	        if (!$block->check($data)) {
 	        	echo "block check false\n";
-	        	$this->log("Synced block block check false");
+	        	$this->log('sync->Microsynchronization Synced block block check false',0,true);
 	            break;
 	        }
 
@@ -456,12 +526,12 @@ class sync extends base{
 	        //check trx
 	        foreach ($data['trx_data'] as $valueee) {
 	            if ($valueee['height']!=$data['data']['height']) {
-	                $this->log('check trx height is false',1);
+	            	$this->log('sync->Microsynchronization check trx height is false',0,true);
 	                $this->echo_display_json(false,'check trx height is false');
 	                exit;
 	            }
 	            if ($valueee['block']!=$data['data']['id']) {
-	                $this->log('check trx block is false',1);
+	            	$this->log('sync->Microsynchronization check trx block is false',0,true);
 	                $this->echo_display_json(false,'check trx block is false');
 	                exit;
 	            }
@@ -481,23 +551,23 @@ class sync extends base{
 	        );
 
 	        if (!$res) {
-	            $this->log("Block add: could not add block - ".$data['data']['height']);
+	        	$this->log('sync->Microsynchronization Block add: could not add block - false'.$data['data']['height'],0,true);
 	            break;
 	        }else{
-	        	$this->log("Synced block from $from_host - ".$data['data']['height']);
+	        	$this->log('sync->Microsynchronization Synced block from $from_host'.$data['data']['height'],0,true);
 	        }
 		}
 	    if (!$this->un_lock()) {
-	    	$this->log("del lock false");
+	    	$this->log('sync->Microsynchronization del lock false',0,true);
 	    }else{
-	    	$this->log("del lock true");
+	    	$this->log('sync->Microsynchronization del lock true',0,true);
 	    }
 	    
 	    exit;
 	}
 }
 
-date_default_timezone_set('PRC');
+date_default_timezone_set("UTC");
 // set_time_limit(0);
 // error_reporting(0);
 

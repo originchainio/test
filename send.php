@@ -1,5 +1,5 @@
 <?php
-// version: 20190214 test
+// version: 20190227
 include __DIR__.'/class/base.php';
 include __DIR__.'/include/account.inc.php';
 include __DIR__.'/include/blacklist.inc.php';
@@ -20,6 +20,10 @@ include __DIR__.'/function/core.php';
 class send extends base{
 	private static $_instance = null;
 	function __construct(){
+        if ($this->info['cli'] != true) {
+            echo "\nneed to run cli modle";
+            exit;
+        }
 		parent::__construct();
 	}
     public static function getInstance(){
@@ -64,8 +68,8 @@ class send extends base{
     	}else{
     		$data = $block->export_for_other_peers($id);
     	}
-    	if (!$data) {	
-    		// echo "Invalid Block data";	
+    	if (!$data) {
+    		$this->log('send->block data false',0,true);
     		exit;	
     	}
     	//send
@@ -88,6 +92,7 @@ class send extends base{
     	//select
     	$data = $mem->get_mempool_from_id($mem_id);
 	    if (!$data) {
+	    	$this->log('send->transaction data false',0,true);
 	        //echo "Invalid transaction id\n";
 	        exit;
 	    }
@@ -134,6 +139,7 @@ class send extends base{
 	        if ($res['status'] == "ok" || $res['coin'] == 'origin') {
 	            return $res['data'];
 	        }else{
+	        	$this->log('send->peer_post false',0,true);
 	            return false;
 	        }  
 	}
@@ -141,6 +147,7 @@ class send extends base{
 
 
 }
+date_default_timezone_set("UTC");
 if (!isset($argv[1])) {
 	exit;
 }
@@ -164,7 +171,6 @@ switch ($q) {
 			$linear='';
 		}
 		$send->block($id,$to_hostname,$linear);
-		echo 1;
 		break;
 	case 'transaction':
 		if (isset($argv[2])) {
@@ -173,7 +179,6 @@ switch ($q) {
 			exit;
 		}
 		$send->transaction($id);
-		echo 1;
 		break;
 	
 	default:

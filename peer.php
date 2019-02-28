@@ -1,6 +1,6 @@
 <?php
 // Peer architecture comes from https://github.com/arionum/node
-// version: 20190214 test
+// version: 20190227
 include __DIR__.'/class/base.php';
 include __DIR__.'/include/account.inc.php';
 include __DIR__.'/include/blacklist.inc.php';
@@ -36,7 +36,7 @@ class Peer extends base{
         $Peerinc=Peerinc::getInstance();
 
         if ($Peerinc->check($hostname)==false) {
-            $this->log('hostname check error',1);
+            $this->log('peer->peer hostname check false',0,true);
             $this->echo_display_json(false,"hostname check error");
             exit;
         }
@@ -50,7 +50,7 @@ class Peer extends base{
                 $Peerinc->add($hostname,0,0,1,md5($hostname),0,0);
             }
         }
-        $this->log('add peer ok');
+        $this->log('peer->peer add peer true',0,true);
         $this->echo_display_json(true,"add peer ok");        
     }
     public function ping($data=[]){
@@ -113,7 +113,7 @@ class Peer extends base{
 
 }
 
-
+date_default_timezone_set("UTC");
 if (!isset($_POST['coin']) or !isset($_GET['q'])) {
     exit;
 }

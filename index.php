@@ -1,5 +1,5 @@
 <?php
-// version: 20190215 test
+// version: 20190215
 include __DIR__.'/class/base.php';
 include __DIR__.'/lib/OriginSql.lib.php';
 include __DIR__.'/class/cache.php';

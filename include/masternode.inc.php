@@ -3,7 +3,7 @@
 The MIT License (MIT)
 Copyright (C) 2019 OriginchainDev
 
-originchain.io
+originchain.net
 
 　　Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190128 test
+// version: 20190226
 class Masternodeinc extends base{
     private static $_instance = null;
     function __construct(){
@@ -44,6 +44,7 @@ class Masternodeinc extends base{
         if ($res) {
             return $res;
         }else{
+            $this->log('masternode.inc->get_masternode false',0,true);
             return false;
         }
         
@@ -57,6 +58,7 @@ class Masternodeinc extends base{
         if ($mm) {
             return true;
         }else{
+            $this->log('masternode.inc->valid_masternode_from_db false',0,true);
             return false;
         }
     }
@@ -98,25 +100,24 @@ class Masternodeinc extends base{
         $sql=OriginSql::getInstance();
         $res = $sql->select('acc','*',2,array("public_key='".$public_key."'"),'',1);
         if ($res==0) {
-            $this->log('check masternode public key Non-existent [false]',3);
+            $this->log('masternode.inc->check public key Non-existent false',0,true);
             return false;
         }
 
         if ($height<2) {
-            $this->log('check masternode block height<2 [false]',3);
+            $this->log('masternode.inc->check check masternode block height<2 false',0,true);
             return false;
         }
 
-        if (san_host($ip)!=$ip) {  $this->log('check masternode ip [false]',3); return false;   }
-        if (san_host($ip)=='') { $this->log('check masternode ip [false]',3); return false;    }
-
-        $this->log('check masternode [true]',3);
+        if (san_host($ip)!=$ip) {  
+            $this->log('masternode.inc->check check masternode ip false',0,true);
+            return false;   }
+        if (san_host($ip)=='') { 
+            $this->log('masternode.inc->check check masternode ip false',0,true);
+             return false;    }
+        $this->log('masternode.inc->check check masternode true',0,true);
         return true;
-
     }
-
-
-
 }
 
 ?>

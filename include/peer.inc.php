@@ -3,7 +3,7 @@
 The MIT License (MIT)
 Copyright (C) 2019 OriginchainDev
 
-originchain.io
+originchain.net
 
 　　Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190128 test
+// version: 20190226
 class Peerinc extends base{
     private static $_instance = null;
     function __construct(){
@@ -43,6 +43,7 @@ class Peerinc extends base{
         if ($res) {
             return $res;
         }else{
+            $this->log('peer.inc->update_peer_fails false',0,true);
             return false;
         }
     }
@@ -59,6 +60,7 @@ class Peerinc extends base{
         if ($res) {
             return $res;
         }else{
+            $this->log('peer.inc->update_peer_stuckfail false',0,true);
             return false;
         }
     }
@@ -68,7 +70,7 @@ class Peerinc extends base{
         foreach ($peer_list as $ve) {
             $url = $ve['hostname']."/peer.php?q=getPeers";
             $data = $this->peer_post($url."getPeers", [], 5);
-            if ($data == false) {continue;}
+            if ($data == false) {   continue;   }
             
             foreach ($data as $valuee) {
                 if ($this->check($valuee['hostname'])==false) {
@@ -112,6 +114,7 @@ class Peerinc extends base{
         $sql=OriginSql::getInstance();
         $res=$sql->delete('peer',array("fails>100 or stuckfail>100"));
         if ($res===false) {
+            $this->log('peer.inc->delete_fails_peer false',0,true);
             return false;
         }else{
             return $res;
@@ -128,6 +131,7 @@ class Peerinc extends base{
         if ($res) {
             return $res;
         }else{
+            $this->log('peer.inc->get_peer_max false',0,true);
             return false;
         }
     }
@@ -138,6 +142,7 @@ class Peerinc extends base{
         if ($res!=0) {
             return true;
         }else{
+            $this->log('peer.inc->get_peer_count_from_hostname false',0,true);
             return false;
         }
     }
@@ -152,22 +157,28 @@ class Peerinc extends base{
     }
     public function check($hostname){
         if (san_host($hostname)!=$hostname) {
+            $this->log('peer.inc->check hostname san_host false',0,true);
             return false;
         }
         if (san_host($hostname)=='') {
+            $this->log('peer.inc->check hostname is empty false',0,true);
             return false;
         }
         if (filter_var($hostname, FILTER_SANITIZE_URL)!=$hostname) {
+            $this->log('peer.inc->check hostname filter_var1 false',0,true);
             return false;
         }
         if (!filter_var($hostname, FILTER_VALIDATE_URL)) {
+            $this->log('peer.inc->check hostname filter_var2 false',0,true);
             return false;
         }
 
         if ($this->check_bad_peer($hostname,$this->config['bad_peers'])==true) {
+            $this->log('peer.inc->check hostname check_bad_peer false',0,true);
             return false;
         }
         if (san_host($hostname)==$this->config['hostname'] or $hostname==$this->config['hostname']) {
+            $this->log('peer.inc->check hostname san_host != config false',0,true);
             return false;
         }
 
@@ -199,6 +210,7 @@ class Peerinc extends base{
         }
         $response = $this->peer_post($hostname.'/peer.php?q=ping', [], $timeout);
         if ($response == false) {
+            $this->log('peer.inc->ping false',0,true);
             return false;
         }else{
             return true;
@@ -220,6 +232,7 @@ class Peerinc extends base{
         if ($res) {
             return $res;
         }else{
+            $this->log('peer.inc->add false',0,true);
             return false;
         }
     }
@@ -229,6 +242,7 @@ class Peerinc extends base{
         if ($res) {
             return true;
         }else{
+            $this->log('peer.inc->delete_peer false',0,true);
             return false;
         }
     }
@@ -256,6 +270,7 @@ class Peerinc extends base{
         $context = stream_context_create($opts);
         $result = file_get_contents($url, false, $context);
         if ($result==false) {
+            $this->log('peer.inc->peer_post result false',0,true);
             return false;
         }
         $res = json_decode($result, true);
@@ -264,6 +279,7 @@ class Peerinc extends base{
         if ($res['status'] == "ok" || $res['coin'] == 'origin') {
             return $res['data'];
         }else{
+            $this->log('peer.inc->peer_post false',0,true);
             return false;
         }  
     }

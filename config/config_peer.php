@@ -12,11 +12,11 @@ return array(
 	'db_max_peers'=>300,
 
 	// How many new peers to check from each peer
-	'max_test_peers'=>5,	//checke peer max number
+	'max_test_peers'=>5,
 
 	// The initial peers to sync from in sanity
 	'initial_peer_list'=>array(
-							'http://t1.originchain.io',
+							'http://t1.originchain.net',
 							),
 
 	// Bad peer is not add database
@@ -25,5 +25,11 @@ return array(
 							"localhost",
 							"10.",
 							),
+
+
+	// The number of peers to send each new transaction to
+	'transaction_propagation_peers'=>5,
+
+	'block_propagation_peers'=>5,
 );
 ?>

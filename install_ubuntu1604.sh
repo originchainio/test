@@ -1,6 +1,6 @@
 #bin/bash
 
-# version 1.05
+# version 1.06
 apt-get update
 # Installation package
 apt-get install build-essential bison re2c pkg-config git -y
@@ -63,10 +63,10 @@ git clone https://github.com/originchainio/test.git originnode
 chown -R originnode:website /var/www/originnode
 chmod -R 0755 /var/www/originnode
 cd /var/www/originnode
-mkdir tmp
 mkdir log
-chmod 777 tmp
+mkdir cache
 chmod 777 log
+chmod 777 cache
 
 # fpm for node
 cp /usr/local/php/etc/php-fpm.d/www.conf.default /usr/local/php/etc/php-fpm.d/originnode.conf

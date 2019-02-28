@@ -2,7 +2,7 @@
 /**
  * 
  */
-// version: 20190218 test
+// version: 20190225
 class Wallet extends base{
 	private static $_instance = null;
 
@@ -192,7 +192,7 @@ class Wallet extends base{
             return array('result' => $res, 'error'=>'');
         }
     }
-    public function sendtoaddress($mode='all',$fromaddress,$toaddress,$privatekey,$amount){
+    public function sendtoaddressbyprivatekey($mode='all',$fromaddress,$toaddress,$privatekey,$amount){
     // Array
     // (
     //     [result] => ok
@@ -240,7 +240,55 @@ class Wallet extends base{
             return array('result' => '', 'error'=>'add mem fail');
         }
     }
-    public function sendtoalias($mode='all',$fromaddress,$alias,$privatekey,$amount){
+
+    public function sendtoaddress($mode='all',$fromaddress,$toaddress,$signature,$amount,$tt){
+    // Array
+    // (
+    //     [result] => ok
+    //     [error] =>
+    // )
+
+        $block=Blockinc::getInstance();
+        $current=$block->current();
+        if (!$current) {
+            return array('result' => '', 'error'=>'current fail');
+        }
+        $Accountinc=Accountinc::getInstance();
+        $frompublickey=$Accountinc->get_public_key_from_address($fromaddress);
+        if (!$frompublickey) {
+            return array('result' => '', 'error'=>'frompublic fail');
+        }
+
+        $mem=Mempoolinc::getInstance();
+        $fee=$amount*0.005;
+        $tt=$tt;
+        $hash=$mem->hasha($toaddress,$amount,$fee,$signature,1,'',$tt,$frompublickey);
+
+
+        $res=$mem->check(array(
+            'id' => $hash,
+            'height' => $current['height']+1,
+            'dst' => $toaddress,
+            'val' => $amount,
+            'fee' => $fee,
+            'signature' => $signature,
+            'version' => 1,
+            'message' => '',
+            'date' => $tt,
+            'public_key' => $frompublickey,
+            'peer' => 'local',
+             ));
+        if (!$res) {
+            return array('result' => '', 'error'=>'mem check fail');
+        }
+        $res=$mem->add_mempool($current['height']+1,$toaddress,$amount,$fee,$signature,1,'',$frompublickey,$tt,'local');
+        if ($res) {
+            return array('result' => 'ok', 'error'=>'');
+        }else{
+            return array('result' => '', 'error'=>'add mem fail');
+        }
+    }
+    public function sendtoaliasbyprivatekey($mode='all',$fromaddress,$alias,$privatekey,$amount){
     // Array
     // (
     //     [result] => ok
@@ -287,7 +335,52 @@ class Wallet extends base{
             return array('result' => '', 'error'=>'add mem fail');
         }
     }
+    public function sendtoalias($mode='all',$fromaddress,$alias,$signature,$amount,$tt){
+    // Array
+    // (
+    //     [result] => ok
+    //     [error] =>
+    // )
 
+        $block=Blockinc::getInstance();
+        $current=$block->current();
+        if (!$current) {
+            return array('result' => '', 'error'=>'current fail');
+        }
+        $Accountinc=Accountinc::getInstance();
+        $frompublickey=$Accountinc->get_public_key_from_address($fromaddress);
+        if (!$frompublickey) {
+            return array('result' => '', 'error'=>'frompublic fail');
+        }
+
+        $mem=Mempoolinc::getInstance();
+        $fee=$amount*0.005;
+        $tt=$tt;
+        $hash=$mem->hasha($alias,$amount,$fee,$signature,2,'',$tt,$frompublickey);
+
+        $res=$mem->check(array(
+            'id' => $hash,
+            'height' => $current['height']+1,
+            'dst' => $alias,
+            'val' => $amount,
+            'fee' => $fee,
+            'signature' => $signature,
+            'version' => 2,
+            'message' => '',
+            'date' => $tt,
+            'public_key' => $frompublickey,
+            'peer' => 'local',
+             ));
+        if (!$res) {
+            return array('result' => '', 'error'=>'mem check fail');
+        }
+        $res=$mem->add_mempool($current['height']+1,$alias,$amount,$fee,$signature,2,'',$frompublickey,$tt,'local');
+        if ($res) {
+            return array('result' => 'ok', 'error'=>'');
+        }else{
+            return array('result' => '', 'error'=>'add mem fail');
+        }
+    }
     public function checkalias($mode='all',$alias){
     // Array
     // (
@@ -303,7 +396,7 @@ class Wallet extends base{
             return array('result' => 'ok', 'error'=>'');
         }
     }
-    public function registalias($mode='all',$fromaddress,$privatekey,$alias){
+    public function registaliasbyprivatekey($mode='all',$fromaddress,$privatekey,$alias){
     // Array
     // (
     //     [result] => ok
@@ -327,6 +420,56 @@ class Wallet extends base{
         $amount=0;
         $tt=time();
         $signature=$mem->signature($fromaddress,$amount,$fee,3,$alias,$tt,$frompublickey, $privatekey);
+        $hash=$mem->hasha($fromaddress,$amount,$fee,$signature,3,$alias,$tt,$frompublickey);
+
+        $res=$mem->check(array(
+            'id' => $hash,
+            'height' => $current['height']+1,
+            'dst' => $fromaddress,
+            'val' => $amount,
+            'fee' => $fee,
+            'signature' => $signature,
+            'version' => 3,
+            'message' => $alias,
+            'date' => $tt,
+            'public_key' => $frompublickey,
+            'peer' => 'local',
+             ));
+        if (!$res) {
+            return array('result' => '', 'error'=>'mem check fail');
+        }
+
+
+        $res=$mem->add_mempool($current['height']+1,$fromaddress,0,$fee,$signature,3,$alias,$frompublickey,$tt,'local');
+        if ($res) {
+            return array('result' => 'ok', 'error'=>'');
+        }else{
+            return array('result' => '', 'error'=>'add mem fail');
+        }
+    }
+    public function registalias($mode='all',$fromaddress,$signature,$alias,$tt){
+    // Array
+    // (
+    //     [result] => ok
+    //     [error] =>
+    // )
+
+        $block=Blockinc::getInstance();
+        $current=$block->current();
+        if (!$current) {
+            return array('result' => '', 'error'=>'current fail');
+        }
+        $Accountinc=Accountinc::getInstance();
+        $frompublickey=$Accountinc->get_public_key_from_address($fromaddress);
+        
+        if (!$frompublickey) {
+            return array('result' => '', 'error'=>'fromaddress fail or fromaddress no public');
+        }
+
+        $mem=Mempoolinc::getInstance();
+        $fee=10;
+        $amount=0;
+        $tt=$tt;
         $hash=$mem->hasha($fromaddress,$amount,$fee,$signature,3,$alias,$tt,$frompublickey);
 
         $res=$mem->check(array(

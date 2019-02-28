@@ -15,6 +15,6 @@ return array(
 	'db_user' => 'root',
 
 	// The database password
-	'db_pass' => '123455',
+	'db_pass' => '123456',
 );
 ?>

@@ -1,5 +1,5 @@
 <?php
-// version: 20190214 test
+// version: 20190227
 include __DIR__.'/class/base.php';
 include __DIR__.'/include/account.inc.php';
 include __DIR__.'/include/blacklist.inc.php';
@@ -28,9 +28,7 @@ class receive extends base{
     }
 
     public function submitTransaction($id,$height,$dst,$val,$fee,$signature,$version,$message,$date,$public_key,$peer){
-
         if (cache::get('sync_block')=='lock') {
-
             $this->echo_display_json(false,'sync lock');
             exit;
         }
@@ -51,7 +49,7 @@ class receive extends base{
                 'public_key'=>$public_key,
                 'peer'=>$peer,
         ])) {
-            $this->log('Invalid transaction',1);
+            $this->log('receive->submitTransaction mem check false',0,true);
             $this->echo_display_json(false,"Invalid transaction");
             exit;
         }
@@ -74,7 +72,7 @@ class receive extends base{
         $Mempool=Mempoolinc::getInstance();
         $Mempool->add_mempool($height,$dst,$val,$fee,$signature,$version,$message,$public_key,$date, $peer);
 
-        //广播给其他peer 前边check已经检测过mem和trx里边没有出现 是新的mem
+        //send mem to peer ,this is new mem ,check function check is new
         $id=escapeshellarg($id);
         $Security=Security::getInstance();
         $cmd=$Security->cmd($this->config['php_path'].'php send.php',['transaction',$id]);
@@ -86,7 +84,6 @@ class receive extends base{
     //Other peer block is sent to me
     public function submitBlock($data,$trx_data,$miner_public_key,$miner_reward_signature,$mn_public_key,$mn_reward_signature,$from_host=''){
         if (cache::get('sync_block')=='lock') {
-            $this->log('receive Sanity lock in place');
             $this->echo_display_json(false,'Sanity lock in place');
             exit;
         }
@@ -100,47 +97,51 @@ class receive extends base{
         $current = $block->current();
         // block already in the blockchain
         if ($current['id'] == $data['id']) {
-            $this->log('block-ok',1);
+            $this->log('receive->submitBlock block already in the blockchain false',0,true);
             $this->echo_display_json(true,'block-ok');
             exit;
         }
         //
         if ($data['date'] > time() + 30) {
-            $this->log('block in the future',1);
+            $this->log('receive->submitBlock block time false',0,true);
             $this->echo_display_json(false,'block in the future');
             exit;
         }
-
+        // $current['height'] == $data['height']
         if ($current['height'] == $data['height'] && $current['id'] != $data['id']) {
-            // different forks, same height
-            // convert the first 12 characters from hex to decimal and the block with the largest number wins
-            $no1 = hexdec(substr(coin2hex($current['id']), 0, 12));
-            $no2 = hexdec(substr(coin2hex($data['id']), 0, 12));
-            if (gmp_cmp($no1, $no2) == 1) {
-                $accept_new = true;
-            }else{
-                $this->log('hexdec-false',1);
-                $accept_new = false;
-            }
-            
-            if ($accept_new==true) {
-                // if the new block is accepted, run a microsanity to sync it
+            if ($current['transactions']<=$data['transactions']) {
                 if ($from_host!=='') {
-                    
                     $cmd=$Security->cmd($this->config['php_path'].'php sync.php',['Microrectification',$from_host]);
                     system($cmd);
-                    $this->log('Microrectification',1);
+                    $this->log('receive->submitBlock Microrectification',0,true);
                     $this->echo_display_json(true,'Microrectification');
                 }
                 exit;
-            } else {
-                $this->log('reverse-Microrectification',1);
+            }else{
+                $this->log('receive->submitBlock reverse-Microrectification',0,true);
                 $this->echo_display_json(true,'reverse-Microrectification');// if it's not, suggest to the peer to get the block from us
                 exit;
             }
         }
  
-        // if the height of the block submitted is lower than our current height, send them our current block
+        // $data['height']>$current['height']
+        if ($data['height']>$current['height'] and $data['height'] - $current['height'] > 150) {
+            $this->log('receive->submitBlock block-out-of-sync',0,true);
+            $this->echo_display_json(false,'block-out-of-sync');
+            exit;
+        }
+
+        // $data['height']>$current['height']
+        if ($data['height']>$current['height'] and $data['height'] - $current['height'] <= 150) {
+            if ($from_host!='') {
+                $cmd=$Security->cmd($this->config['php_path'].'php sync.php',['Microsynchronization',$from_host,$data['height']]);
+                system($cmd);
+                $this->log('receive->submitBlock '.$cmd,0,true);
+                $this->echo_display_json(true,'current block-old Microsynchronization');
+                // exit;
+            }
+        }
+        // $data['height'] < $current['height']
         if ($data['height'] < $current['height'] and $this->config['local_node']==false) {
 
             if ($from_host!=='') {
@@ -149,42 +150,26 @@ class receive extends base{
                 system($cmd);
 
             }
-            $this->log('block-too-old',1);
+            $this->log('receive->submitBlock block-too-old',0,true);
             $this->echo_display_json(false,'block-too-old');
             exit;
         }
 
-        // if the block difference is bigger than 150, nothing should be done. They should sync via sanity
-        if ($data['height']>$current['height'] and $data['height'] - $current['height'] > 150) {
-            $this->log('block-out-of-sync',1);
-            $this->echo_display_json(false,'block-out-of-sync');
-            exit;
-        }
 
-            // request them to send us a microsync with the latest blocks
-        if ($data['height']>$current['height'] and $data['height'] - $current['height'] <= 150) {
-            if ($from_host!='') {
-                $cmd=$Security->cmd($this->config['php_path'].'php sync.php',['Microsynchronization',$from_host,$data['height']]);
-                $this->log($cmd);
-                system($cmd);
 
-                $this->echo_display_json(true,'current block-old Microsynchronization');
-                // exit;
-            }
-        }
-        // send it to all our peers
+        // send block to all our peers
         if ($this->config['local_node']==false) {
             $Security=Security::getInstance();
             $cmd=$Security->cmd($this->config['php_path'].'php send.php',['block',$data['id'],'all','true']);
             system($cmd);
         }
-        $this->log('add block-ok',1);
+        $this->log('receive->submitBlock add block-ok',0,true);
         $this->echo_display_json(true,'add block-ok');    
     }
 
 }
 
-
+date_default_timezone_set("UTC");
 if (!isset($_POST['coin']) or !isset($_GET['q'])) {
     exit;
 }

@@ -2,7 +2,7 @@
 /**
  * 
  */
-// version: 20190218 test
+// version: 20190225
 class Blockchain extends base{
 	private static $_instance = null;
 
