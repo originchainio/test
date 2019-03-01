@@ -57,9 +57,9 @@ cp /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf
 groupadd website
 useradd -s /sbin/nologin -g website originnode
 # install node
-mkdir /var/www
-cd /var/www
-git clone https://github.com/originchainio/test.git originnode
+# mkdir /var/www
+# cd /var/www
+# git clone https://github.com/originchainio/test.git originnode
 chown -R originnode:website /var/www/originnode
 chmod -R 0755 /var/www/originnode
 cd /var/www/originnode

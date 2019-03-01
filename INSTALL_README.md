@@ -1,8 +1,13 @@
-## Install for ubuntu16.04
+## Git for ubuntu16.04
 
-download install_ubuntu1604.sh
+apt-get update && apt-get install vim screen git -y
+screen -S orcnode
+mkdir /var/www
+cd /var/www
+git clone https://github.com/originchainio/test.git originnode
 
 ## Fast Installation Environment
+cd /var/www/originnode
 chmod +x install_ubuntu1604.sh
 ./install_ubuntu1604.sh
 
@@ -47,9 +52,9 @@ And turn on PHP Be similar to:
        index index.html index.htm index.php;
 	   ...
 	   ...
-       location ~ \.php$ {
-              fastcgi_pass 127.0.0.1:9000;
-              include fastcgi.conf;
+       location ~ \.php$ {    
+              include snippets/fastcgi-php.conf;
+			  fastcgi_pass 127.0.0.1:9000;
               # include snippets/fastcgi-php.conf;
               # fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
        }
