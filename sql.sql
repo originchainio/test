@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50717
 File Encoding         : 65001
 
-Date: 2019-01-13 13:47:06
+Date: 2019-03-02 00:48:41
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -45,6 +45,25 @@ CREATE TABLE `blocks` (
   `transactions` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `height` (`height`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Table structure for dataa
+-- ----------------------------
+DROP TABLE IF EXISTS `dataa`;
+CREATE TABLE `dataa` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `height` int(11) NOT NULL,
+  `accaddress` varbinary(128) DEFAULT NULL,
+  `n1` varchar(255) DEFAULT NULL,
+  `n2` varchar(255) DEFAULT NULL,
+  `n3` varchar(255) DEFAULT NULL,
+  `n4` varchar(255) DEFAULT NULL,
+  `n5` varchar(255) DEFAULT NULL,
+  `n6` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `height` (`height`),
+  KEY `accaddress` (`accaddress`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
@@ -108,7 +127,7 @@ CREATE TABLE `peers` (
   KEY `ping` (`ping`),
   KEY `reserve` (`reserve`),
   KEY `stuckfail` (`stuckfail`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Table structure for transactions
