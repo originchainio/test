@@ -20,6 +20,7 @@ include __DIR__.'/function/core.php';
 class send extends base{
 	private static $_instance = null;
 	function __construct(){
+		parent::__construct();
         if ($this->info['cli'] != true) {
             echo "\nneed to run cli modle";
             exit;

@@ -244,7 +244,8 @@ class sync extends base{
 			$current=$block->current();
 			$star_height=$current['height']+1;
 			$end_height=$max_height;
-			for ($i=$star_height; $i <= $end_height; $i++) { 
+			for ($i=$star_height; $i <= $end_height; $i++) {
+				$current=$block->current();
 				$data =$peer->peer_post($value."/peer.php?q=getBlock", ["height" => $i],60);
 				echo 'get height start:'.($i)."\n";
 				if ($data === false) {
@@ -305,7 +306,8 @@ class sync extends base{
 				cache::set('sync_last_time',time(),0);
 			}
 		}
-
+		$current=$block->current();
+		
 		// deleting mempool transactions older than 10 days
 		$mempool->delete_than_days(10);
 

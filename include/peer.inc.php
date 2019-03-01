@@ -114,7 +114,7 @@ class Peerinc extends base{
         $sql=OriginSql::getInstance();
         $res=$sql->delete('peer',array("fails>100 or stuckfail>100"));
         if ($res===false) {
-            $this->log('peer.inc->delete_fails_peer false',0,true);
+            $this->log('peer.inc->delete_fails_peer false or Non-existent',0,true);
             return false;
         }else{
             return $res;
@@ -270,7 +270,7 @@ class Peerinc extends base{
         $context = stream_context_create($opts);
         $result = file_get_contents($url, false, $context);
         if ($result==false) {
-            $this->log('peer.inc->peer_post result false',0,true);
+            $this->log('peer.inc->peer_post result false'.$url,0,true);
             return false;
         }
         $res = json_decode($result, true);

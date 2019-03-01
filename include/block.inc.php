@@ -627,7 +627,7 @@ class Blockinc extends base{
         }
 
         //
-        $this->log("Mining - ".($block_current_height+1), 2);
+        $this->log("Mining - ".($block_current_height+1), 0,true);
         $argon = '$argon2i$v=19$m=16384,t=4,p=4'.$argon;
 
         // the hash base for agon
@@ -636,7 +636,7 @@ class Blockinc extends base{
 
         // check argon's hash validity
         if (!password_verify($base, $argon)) {
-            $this->log('block.inc->mine password_verify false',0,true);
+            $this->log('block.inc->mine password_verify false'.$base.'|'.$argon,0,true);
             return false;
 
         }
