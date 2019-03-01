@@ -11,6 +11,9 @@ cd /var/www/originnode
 chmod +x install_ubuntu1604.sh
 ./install_ubuntu1604.sh
 
+## restart OS
+restart
+
 ## Import data structure
 
 //Enter the node directory
