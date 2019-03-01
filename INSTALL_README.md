@@ -59,11 +59,12 @@ Route: /var/www/originnode
 
 
 ## If you don't use domain names, use IP as a node
-del originnode file:
+
+//del originnode file:
 
 rm /etc/nginx/sites-enabled/originnode
 
-edit nginx default file:
+//edit nginx default file:
 
 vim /etc/nginx/sites-enabled/default
 
