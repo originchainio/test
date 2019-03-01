@@ -70,7 +70,7 @@ vim /etc/nginx/sites-enabled/default
 
 //Modify server_name to your ip
 
-And turn on PHP Be similar to:
+//And turn on PHP Be similar to:
 
 #######################################################
 
