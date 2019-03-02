@@ -588,6 +588,7 @@ class Blockinc extends base{
         }
         // return array('miner_reward' => $miner_reward, 'mn_reward'=>$mn_reward,'max_reward'=>$max_reward,'destroy_reward'=>$destroy_reward);
         $get_reward=$this->reward($data['height'], $my_trx_list);
+        
         if (bccomp($miner_reward, $get_reward['miner_reward'], 8)!=0) {
             $this->log('Block.inc->check miner_reward false',0,true);
             return false;

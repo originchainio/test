@@ -2,7 +2,7 @@
 /**
  * 
  */
-// version: 20190225
+// version: 20190301
 class Wallet extends base{
 	private static $_instance = null;
 
@@ -211,7 +211,9 @@ class Wallet extends base{
         }
 
         $mem=Mempoolinc::getInstance();
+        $amount=number_format($amount, 8, '.', '');
         $fee=$amount*0.005;
+        $fee=number_format($fee, 8, '.', '');
         $tt=time();
         $signature=$mem->signature($toaddress,$amount,$fee,1,'',$tt,$frompublickey, $privatekey);
         $hash=$mem->hasha($toaddress,$amount,$fee,$signature,1,'',$tt,$frompublickey);
@@ -235,6 +237,9 @@ class Wallet extends base{
         }
         $res=$mem->add_mempool($current['height']+1,$toaddress,$amount,$fee,$signature,1,'',$frompublickey,$tt,'local');
         if ($res) {
+            $Security=Security::getInstance();
+            $cmd=$Security->cmd($this->config['php_path'].'php '.dirname(dirname(__FILE__)).'/send.php',['transaction',$hash]);
+            system($cmd);
             return array('result' => 'ok', 'error'=>'');
         }else{
             return array('result' => '', 'error'=>'add mem fail');
@@ -260,7 +265,9 @@ class Wallet extends base{
         }
 
         $mem=Mempoolinc::getInstance();
+        $amount=number_format($amount, 8, '.', '');
         $fee=$amount*0.005;
+        $fee=number_format($fee, 8, '.', '');
         $tt=$tt;
         $hash=$mem->hasha($toaddress,$amount,$fee,$signature,1,'',$tt,$frompublickey);
 
@@ -283,6 +290,9 @@ class Wallet extends base{
         }
         $res=$mem->add_mempool($current['height']+1,$toaddress,$amount,$fee,$signature,1,'',$frompublickey,$tt,'local');
         if ($res) {
+            $Security=Security::getInstance();
+            $cmd=$Security->cmd($this->config['php_path'].'php '.dirname(dirname(__FILE__)).'/send.php',['transaction',$hash]);
+            system($cmd);
             return array('result' => 'ok', 'error'=>'');
         }else{
             return array('result' => '', 'error'=>'add mem fail');
@@ -307,7 +317,9 @@ class Wallet extends base{
         }
 
         $mem=Mempoolinc::getInstance();
+        $amount=number_format($amount, 8, '.', '');
         $fee=$amount*0.005;
+        $fee=number_format($fee, 8, '.', '');
         $tt=time();
         $signature=$mem->signature($alias,$amount,$fee,2,'',$tt,$frompublickey, $privatekey);
         $hash=$mem->hasha($alias,$amount,$fee,$signature,2,'',$tt,$frompublickey);
@@ -330,6 +342,9 @@ class Wallet extends base{
         }
         $res=$mem->add_mempool($current['height']+1,$alias,$amount,$fee,$signature,2,'',$frompublickey,$tt,'local');
         if ($res) {
+            $Security=Security::getInstance();
+            $cmd=$Security->cmd($this->config['php_path'].'php '.dirname(dirname(__FILE__)).'/send.php',['transaction',$hash]);
+            system($cmd);
             return array('result' => 'ok', 'error'=>'');
         }else{
             return array('result' => '', 'error'=>'add mem fail');
@@ -354,7 +369,9 @@ class Wallet extends base{
         }
 
         $mem=Mempoolinc::getInstance();
+        $amount=number_format($amount, 8, '.', '');
         $fee=$amount*0.005;
+        $fee=number_format($fee, 8, '.', '');
         $tt=$tt;
         $hash=$mem->hasha($alias,$amount,$fee,$signature,2,'',$tt,$frompublickey);
 
@@ -376,6 +393,9 @@ class Wallet extends base{
         }
         $res=$mem->add_mempool($current['height']+1,$alias,$amount,$fee,$signature,2,'',$frompublickey,$tt,'local');
         if ($res) {
+            $Security=Security::getInstance();
+            $cmd=$Security->cmd($this->config['php_path'].'php '.dirname(dirname(__FILE__)).'/send.php',['transaction',$hash]);
+            system($cmd);
             return array('result' => 'ok', 'error'=>'');
         }else{
             return array('result' => '', 'error'=>'add mem fail');
@@ -442,6 +462,9 @@ class Wallet extends base{
 
         $res=$mem->add_mempool($current['height']+1,$fromaddress,0,$fee,$signature,3,$alias,$frompublickey,$tt,'local');
         if ($res) {
+            $Security=Security::getInstance();
+            $cmd=$Security->cmd($this->config['php_path'].'php '.dirname(dirname(__FILE__)).'/send.php',['transaction',$hash]);
+            system($cmd);
             return array('result' => 'ok', 'error'=>'');
         }else{
             return array('result' => '', 'error'=>'add mem fail');
@@ -492,6 +515,9 @@ class Wallet extends base{
 
         $res=$mem->add_mempool($current['height']+1,$fromaddress,0,$fee,$signature,3,$alias,$frompublickey,$tt,'local');
         if ($res) {
+            $Security=Security::getInstance();
+            $cmd=$Security->cmd($this->config['php_path'].'php '.dirname(dirname(__FILE__)).'/send.php',['transaction',$hash]);
+            system($cmd);
             return array('result' => 'ok', 'error'=>'');
         }else{
             return array('result' => '', 'error'=>'add mem fail');

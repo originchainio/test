@@ -80,7 +80,6 @@ class send extends base{
 		        $data['from_host']=$this->config['hostname'];
 		    }
 		    // echo_array($data);
-		    // echo_array($this->peer_post($value['hostname']."/peer.php?q=submitBlock", json_encode($data)));
 		    $this->peer_post($value['hostname']."/receive.php?q=submitBlock", json_encode($data));
     	}
     	//
@@ -114,6 +113,14 @@ class send extends base{
 	    }
 	    return true;
     }
+
+    public function sendlocalhost($to_hostname){
+        if ($this->config['local_node']==false) {
+            $res = $this->peer_post($hostname."/receive.php?q=peer", json_encode(["hostname" => $this->config['hostname']]));
+        }
+
+    }
+
 	private function peer_post($url, $json_post_data, $timeout = 60){
 	        $postdata = http_build_query(
 	            [
@@ -181,7 +188,14 @@ switch ($q) {
 		}
 		$send->transaction($id);
 		break;
-	
+	case 'sendlocalhost':
+		if (isset($argv[2])) {
+			$to_hostname=$argv[2];
+		}else{
+			exit;
+		}
+		$send->sendlocalhost($to_hostname);
+		break;	
 	default:
 		# code...
 		break;

@@ -22,7 +22,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// version: 20190226
+// version: 20190301
 class Mempoolinc extends base{
     private static $_instance = null;
     function __construct(){
@@ -153,6 +153,7 @@ class Mempoolinc extends base{
                 // }
                 //fee
                 $fee = $x['val'] * 0.005;
+                $fee=number_format($fee, 8, '.', '');
                 if (bccomp($fee, $x['fee'], 8)!=0) {
                     $this->log('mempool.inc->check version:1 fee false',0,true);
                     return false;
@@ -173,6 +174,7 @@ class Mempoolinc extends base{
                 // }
                 //fee
                 $fee = $x['val'] * 0.005;
+                $fee=number_format($fee, 8, '.', '');
                 if (bccomp($fee, $x['fee'], 8)!=0) {
                     $this->log('mempool.inc->check version:2 fee false',0,true);
                     return false;
@@ -438,11 +440,13 @@ class Mempoolinc extends base{
                     //$this->log('mempool.inc->get_mempool_transaction_for_news get_balance_from_public_key balance is <0 false',1,true);
                     continue;
                 }
-                if ($this->check($x)==true) {
-                    $transactions[] = $x;
-                }else{
-                    continue;
-                }
+                
+                $transactions[] = $x;
+                // if ($this->check($x)==true) {
+                //     $transactions[] = $x;
+                // }else{
+                //     continue;
+                // }
                 
                 if (count($transactions)>=$max) {
                     break;

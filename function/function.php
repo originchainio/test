@@ -1,5 +1,5 @@
 <?php
-// version: 20190128 test
+// version: 20190301 test
 function echo_array($a) { echo "<pre>"; print_r($a); echo "</pre>"; }
 //preg
 function san($a, $b = ""){
@@ -37,5 +37,39 @@ function valid_base58($str){
         }
     }
     return true;
+}
+function to_post($url, $data = [], $timeout = 60){
+    if ($timeout==='') {
+        $timeout=60;
+    }
+    $postdata = http_build_query(
+        [
+            'data' => json_encode($data),
+            "coin" => 'origin',
+        ]
+    );
+
+    $opts = [
+        'http' =>
+            [
+                'timeout' => $timeout,
+                'method'  => 'POST',
+                'header'  => 'Content-type: application/x-www-form-urlencoded',
+                'content' => $postdata,
+            ],
+    ];
+
+    $context = stream_context_create($opts);
+    $result = file_get_contents($url, false, $context);
+    if ($result==false) {
+        return false;
+    }
+    $res = json_decode($result, true);
+
+    if (isset($res['result']) and isset($res['error'])) {
+        return $res;
+    }else{
+        return false;
+    }
 }
 ?>

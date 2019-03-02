@@ -41,7 +41,6 @@ class Transactioninc extends base{
         if ($res!=0) {
             return true;
         }else{
-            $this->log('Transaction.inc->get_id_istrue_from_id false',0,true);
             return false;
         }
     }
@@ -567,6 +566,7 @@ class Transactioninc extends base{
                 // }
                 //fee
                 $fee = $x['val'] * 0.005;
+                $fee=number_format($fee, 8, '.', '');
                 if (bccomp($fee, $x['fee'], 8)!=0) {
                     $this->log('Transaction.inc->check version:1 fee false',0,true);
                     return false;
@@ -586,6 +586,7 @@ class Transactioninc extends base{
                 // }
                 //fee
                 $fee = $x['val'] * 0.005;
+                $fee=number_format($fee, 8, '.', '');
                 if (bccomp($fee, $x['fee'], 8)!=0) {
                     $this->log('Transaction.inc->check version:2 fee false',0,true);
                     return false;

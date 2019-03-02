@@ -61,7 +61,7 @@ class Uinterface extends base{
                     //$fire_args_str=implode(",",$fire_args);
                     //echo_array($fire_args);
                     if (count($params)!==count($fire_args)) {
-                        echo_array(array('result' => '','error'=>'parameter number error'));
+                        echo_array(array('result' => '','error'=>'parameter number error  need:'.count($params).' your submit:'.count($fire_args)));
                         exit;
                     }
                     echo_array($lib->$method($this->mode,...$fire_args));
@@ -110,7 +110,7 @@ class Uinterface extends base{
                     //$fire_args_str=implode(",",$fire_args);
                     //$this->log($method.'  '.$this->mode.','.$fire_args_str);
                     if (count($params)!==count($fire_args)) {
-                        echo json_encode(array('result' => '','error'=>'parameter number error'));
+                        echo json_encode(array('result' => '','error'=>'parameter number error  need:'.count($params).' your submit:'.count($fire_args)));
                         exit;
                     }
                     echo json_encode($lib->$method($this->mode,...$fire_args));

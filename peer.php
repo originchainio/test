@@ -28,7 +28,7 @@ class Peer extends base{
         }
     }
 
-    public function peer($hostname){
+    public function peer($hostname,$repeer){
         // sanitize the hostname
         $hostname = filter_var($hostname, FILTER_SANITIZE_URL);
         $hostname = san_host($hostname);
@@ -99,18 +99,6 @@ class Peer extends base{
         }
         $this->echo_display_json(true,$peers);
     }
-    public function getBalance($address){
-        $sql=OriginSql::getInstance();
-        $res=$sql->select('acc','balance',1,array("id='".$address."'"),'',1);
-        if (!$res) {
-            $this->echo_display_json(true,'0.00000000');
-        }else{
-            $balance=number_format($res['balance'],8);
-            $this->echo_display_json(true,$balance);
-        }
-    }
-
-
 }
 
 date_default_timezone_set("UTC");
@@ -123,35 +111,10 @@ $q = trim($_GET['q']);
 switch ($q) {
     case 'peer':
         $data = json_decode(trim($_POST['data']), true);
-        $peer->peer($data['hostname']);
+        $peer->peer($data['hostname'],$data['repeer']);
         break;
     case 'ping':
         $peer->ping();
-        break;
-    case 'submitTransaction':
-        $data = json_decode(trim($_POST['data']), true);
-        $peer->submitTransaction(
-            $data['id'],
-            $data['height'],
-            $data['dst'],
-            $data['val'],
-            $data['fee'],
-            $data['signature'],
-            $data['version'],
-            $data['message'],
-            $data['date'],
-            $data['public_key'],
-            $data['peer']
-        );
-        break;
-    case 'submitBlock':
-        $data = json_decode(trim($_POST['data']), true);
-        if (isset($data['from_host'])) {
-            $from_host=$data['from_host'];
-        }else{
-            $from_host='';
-        }
-        $peer->submitBlock($data['data'],$data['trx_data'],$data['miner_public_key'],$data['miner_reward_signature'],$data['mn_public_key'],$data['mn_reward_signature'],$from_host);
         break;
     case 'currentBlock':
         $peer->currentBlock();
@@ -167,21 +130,7 @@ switch ($q) {
     case 'getPeers':
         $peer->getPeers();
         break;
-    case 'getBalance':
-        $data = json_decode(trim($_POST['data']), true);
-        $peer->getBalance($data['address']);
-        break;
     default:
 
         break;
 }
-
-// $peer=new Peer($_POST['coin']);
-// if(method_exists($peer,$q)){
-//     if (!empty($_POST['data'])) {
-//         $data = json_decode(trim($_POST['data']), true);
-//         $peer->$q($data);
-//     }else{
-//         $peer->$q();
-//     }
-// }

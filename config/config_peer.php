@@ -16,7 +16,8 @@ return array(
 
 	// The initial peers to sync from in sanity
 	'initial_peer_list'=>array(
-							'http://t1.originchain.net',
+							'http://n1.originchain.net',
+							'http://n2.originchain.net',
 							),
 
 	// Bad peer is not add database

@@ -50,7 +50,7 @@ class Accountinc extends base{
                             'alias'=>NULL
         ));
         if ($res) {
-            $this->log('account.inc->add_account true',0,true);
+            //$this->log('account.inc->add_account true',0,true);
             return true;
         }else{
             $this->log('account.inc->add_account false',0,true);
@@ -64,7 +64,7 @@ class Accountinc extends base{
 
         $res=$sql->delete('acc',array("block='".$block_hash."'"));
         if ($res) {
-            $this->log('account.inc->delete_form_block_hash true',0,true);
+            //$this->log('account.inc->delete_form_block_hash true',0,true);
             return true;
         }else{
             $this->log('account.inc->delete_form_block_hash false',0,true);
@@ -100,7 +100,7 @@ class Accountinc extends base{
         }
         $public_key = base58_encode($public_key);
         if (valid_base58($public_key)==true and valid_len($public_key,70,128)==true) {
-            $this->log('account.inc->get_address_from_public_key true',0,true);
+            //$this->log('account.inc->get_address_from_public_key true',0,true);
             return $public_key;
         }else{
             $this->log('account.inc->get_address_from_public_key false',0,true);
@@ -113,7 +113,7 @@ class Accountinc extends base{
         $res=$this->generate_account_s();
         if ($res) {
             $address = $this->get_address_from_public_key($res['public_key']);
-            $this->log('account.inc->generate_account true',0,true);
+            //$this->log('account.inc->generate_account true',0,true);
             return ["address" => $address, "public_key" => $res['public_key'], "private_key" => $res['private_key']];
         }else{
             $this->log('account.inc->generate_account false',0,true);
@@ -154,7 +154,7 @@ class Accountinc extends base{
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','*',1,array('public_key="'.$public_key.'"'),'',1);
         if ($res['alias']=='' or $res['alias']==NULL) {
-            $this->log('account.inc->alias_alive_from_public_key true',0,true);
+            //$this->log('account.inc->alias_alive_from_public_key true',0,true);
             return false;
         } else {
             $this->log('account.inc->alias_alive_from_public_key false',0,true);
@@ -167,7 +167,7 @@ class Accountinc extends base{
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','*',2,array('alias="'.$alias.'"'),'',1);
         if ($res!=0) {
-            $this->log('account.inc->alias_alive_from_alias true',0,true);
+            //$this->log('account.inc->alias_alive_from_alias true',0,true);
             return true;
         } else {
             $this->log('account.inc->alias_alive_from_alias false',0,true);
@@ -180,7 +180,7 @@ class Accountinc extends base{
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','*',2,array('public_key="'.$public_key.'"'),'',1);
         if ($res!=0) {
-            $this->log('account.inc->public_key_alive_from_public true',0,true);
+            //$this->log('account.inc->public_key_alive_from_public true',0,true);
             return true;
         } else {
             $this->log('account.inc->public_key_alive_from_public false',0,true);
@@ -193,7 +193,7 @@ class Accountinc extends base{
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','*',2,array('id="'.$address.'"'),'',1);
         if ($res!=0) {
-            $this->log('account.inc->address_alive_from_address true',0,true);
+            //$this->log('account.inc->address_alive_from_address true',0,true);
             return true;
         } else {
             $this->log('account.inc->address_alive_from_address false',0,true);
@@ -269,7 +269,7 @@ class Accountinc extends base{
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','id',1,array('alias="'.$alias_id.'"'),'',1);
         if ($res) {
-            $this->log('account.inc->get_address_from_alias true',0,true);
+            //$this->log('account.inc->get_address_from_alias true',0,true);
             return $res['id'];
         }else{
             $this->log('account.inc->get_address_from_alias false',0,true);
@@ -283,7 +283,7 @@ class Accountinc extends base{
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','id',1,array('public_key="'.$publickey.'"'),'',1);
         if ($res) {
-            $this->log('account.inc->get_address_from_publickey_db true',0,true);
+            //$this->log('account.inc->get_address_from_publickey_db true',0,true);
             return $res['id'];
         }else{
             $this->log('account.inc->get_address_from_publickey_db false',0,true);
@@ -298,7 +298,7 @@ class Accountinc extends base{
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','alias',1,array('id="'.$address.'"'),'',1);
         if ($res) {
-            $this->log('account.inc->get_alias_frome_address true',0,true);
+            //$this->log('account.inc->get_alias_frome_address true',0,true);
             return $res['alias'];
         }else{
             $this->log('account.inc->get_alias_frome_address false',0,true);
@@ -312,7 +312,7 @@ class Accountinc extends base{
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','alias',1,array('public_key="'.$publickey.'"'),'',1);
         if ($res) {
-            $this->log('account.inc->get_alias_frome_publickey true',0,true);
+            //$this->log('account.inc->get_alias_frome_publickey true',0,true);
             return $res['alias'];
         }else{
             $this->log('account.inc->get_alias_frome_publickey false',0,true);
@@ -338,7 +338,7 @@ class Accountinc extends base{
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','balance',1,array('id="'.$address.'"'),'',1);
         if ($res) {
-            $this->log('account.inc->get_balance_from_address true',0,true);
+            //$this->log('account.inc->get_balance_from_address true',0,true);
             return $res['balance'];
         }else{
             $this->log('account.inc->get_balance_from_address false',0,true);
@@ -350,7 +350,7 @@ class Accountinc extends base{
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','balance',1,array('public_key="'.$public_key.'"'),'',1);
         if ($res) {
-            $this->log('account.inc->get_balance_from_public_key true',0,true);
+            //$this->log('account.inc->get_balance_from_public_key true',0,true);
             return $res['balance'];
         }else{
             $this->log('account.inc->get_balance_from_public_key false',0,true);
@@ -364,7 +364,7 @@ class Accountinc extends base{
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','public_key',1,array('id="'.$address.'"'),'',1);
         if ($res) {
-            $this->log('account.inc->get_public_key_from_address true',0,true);
+            //$this->log('account.inc->get_public_key_from_address true',0,true);
             return $res['public_key'];
         }else{
             $this->log('account.inc->get_public_key_from_address false',0,true);
@@ -377,7 +377,7 @@ class Accountinc extends base{
         $sql=OriginSql::getInstance();
         $res=$sql->select('acc','public_key',1,array('alias="'.$alias.'"'),'',1);
         if ($res) {
-            $this->log('account.inc->get_public_key_from_alias true',0,true);
+            //$this->log('account.inc->get_public_key_from_alias true',0,true);
             return $res['public_key'];
         }else{
             $this->log('account.inc->get_public_key_from_alias false',0,true);

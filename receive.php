@@ -166,7 +166,26 @@ class receive extends base{
         $this->log('receive->submitBlock add block-ok',0,true);
         $this->echo_display_json(true,'add block-ok');    
     }
+    public function peer($hostname){
+        $hostname = filter_var($hostname, FILTER_SANITIZE_URL);
+        $hostname = san_host($hostname);
+        
+        $Peerinc=Peerinc::getInstance();
+        if ($Peerinc->check($hostname)==false) {
+            $this->echo_display_json(false,'check hostname fail');
+            exit;
+        }
 
+        if ($Peerinc->get_peer_count_from_hostname($hostname)==false) {
+            if ($Peerinc->get_peer_all_count()<$this->config['db_max_peers']) {
+                $Peerinc->add($hostname,0,0,1,md5($hostname),0,0);
+                $this->echo_display_json(true,'add peer');
+                exit;
+            }
+        }
+
+        $this->echo_display_json(false,'add fail');
+    }
 }
 
 date_default_timezone_set("UTC");
@@ -201,6 +220,10 @@ switch ($q) {
             $from_host='';
         }
         $receive->submitBlock($data['data'],$data['trx_data'],$data['miner_public_key'],$data['miner_reward_signature'],$data['mn_public_key'],$data['mn_reward_signature'],$from_host);
+        break;
+    case 'peer':
+        $data = json_decode(trim($_POST['data']), true);
+        $receive->peer($data['hostname']);
         break;
     default:
         break;

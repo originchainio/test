@@ -30,10 +30,6 @@ class base
     function __construct()
     {
         $this->config = include __DIR__ . '../../config/config.php';
-        if ($this->config['init']==false) {
-            echo 'init is false';
-            exit;
-        }
         $this->info['cli'] = $this->is_cli();
         //$this->info['hostname']=$this->get_hostname();
         $this->info['version'] = 'Version 1.0 Build 20190227';
@@ -89,9 +85,9 @@ class base
             header('Content-Type: application/json');
         }
         if ($status == true) {
-            echo json_encode(["status" => "ok", "data" => $data, "coin" => $this->config['coin_name']]);
+            echo json_encode(["status" => "ok", "data" => $data, "coin" => 'origin']);
         } else {
-            echo json_encode(["status" => "error", "data" => $data, "coin" => $this->config['coin_name']]);
+            echo json_encode(["status" => "error", "data" => $data, "coin" => 'origin']);
         }
     }
 
@@ -106,8 +102,10 @@ class base
         $hostname = (!empty($_SERVER['HTTPS']) ? 'https' : 'http') . "://" . san_host($_SERVER['HTTP_HOST']);
         return $hostname;
     }
-    // The log code comes from arionum https://github.com/arionum/node
     public function log($data,$verbosity = 0,$result=true){
+        if ($this->config['enable_logging']==false) {
+            return;
+        }
         if ($verbosity==='') {
             $verbosity = 0;
         }
@@ -116,20 +114,11 @@ class base
         }
         if ($result==false) {
             $data='error: '.$data;
+        }else{
+            $data='success: '.$data;
         }
-        $date = date("[Y-m-d H:i:s]");
-
-        $trace = debug_backtrace();
-        $loc = count($trace) - 1;
-        $file = substr($trace[$loc]['file'], strrpos($trace[$loc]['file'], "/") + 1);
-        $res = "{$date} " . $file . ":" . $trace[$loc]['line'];
-        if (!empty($trace[$loc]['class'])) {
-            $res .= "-" . $trace[$loc]['class'];
-        }
-        if (!empty($trace[$loc]['function']) && $trace[$loc]['function'] != '_log') {
-            $res .= '->' . $trace[$loc]['function'] . '()';
-        }
-        $res .= " {$data} \n";
+        $data=date("[Y-m-d H:i:s]").' '.$data;
+        $res = " {$data} \n";
         //echo $res;
         @file_put_contents(__DIR__ . '../../log/'.$this->config['log_file'], $res, FILE_APPEND);
         if ($result==false) {

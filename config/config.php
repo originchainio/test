@@ -11,9 +11,6 @@ return array_merge(array(
 	// If you configure PHP environment variables and allow them to be invoked globally directly by PHP CGI mode, you can leave them blank. If it is a quick installation script install, please keep it unchanged
 	'php_path'=>'/usr/local/php/bin/',
 
-	// Coin name
-	'coin_name'=>'origin',
-
 	//Local hostname
 	'hostname'=>'http://192.168.1.40',
 
@@ -23,8 +20,7 @@ return array_merge(array(
 	// Hosts that are allowed to mine and public api allow host on this node
 	'allow_host'=>array('127.0.0.1',
 						'localhost',
-						'::1',
-						'192.168.1.40'
+						'::1'
 						),
 
 	//Local node, passive receiving, not being mined and as master node, test configuration
@@ -37,7 +33,7 @@ return array_merge(array(
 |--------------------------------------------------------------------------
 */
 	// Enable log output to the specified file
-	'enable_logging'=>false,
+	'enable_logging'=>true,
 
 	// The specified file to write to (this should not be publicly visible)
 	'log_file'=>'origin.log',
@@ -45,7 +41,7 @@ return array_merge(array(
 	'log_file_error'=>'origin_error.log',
 
 	// Log verbosity (default 0, maximum 3)
-	'log_verbosity'=>0,
+	'log_verbosity'=>1,
 
 /*
 |--------------------------------------------------------------------------

@@ -30,6 +30,13 @@ class Network extends base{
         }
         switch ($type) {
             case 'add':
+                $node = filter_var($node, FILTER_SANITIZE_URL);
+                $node = san_host($node);
+                
+                $Peerinc=Peerinc::getInstance();
+                if ($Peerinc->check($node)==false) {
+                    return array('result' => '', 'error'=>'check node fail');
+                }
                 $sql=OriginSql::getInstance();
                 if ($sql->select('peer','*',2,array("hostname='".$node."'"),'',1)==false) {
                     $res=$sql->add('peer',array('hostname'=>$node,'blacklisted'=>0,'ping'=>0,'reserve'=>1,'ip'=>md5($node),'fails'=>0,'stuckfail'=>0));
@@ -256,7 +263,7 @@ class Network extends base{
             return array('result' => $all_count, 'error'=>'');
         }
     }
-    public function getpeerinfo($mode='cli'){
+    public function getnodeinfo($mode='cli'){
     // Array
     // (
     //     [result] => Array
@@ -300,6 +307,18 @@ class Network extends base{
         }else{
             return array('result' => '', 'error'=>'fail');
         }
+    }
+    public function getmorenode($mode='cgi'){
+        $sql=OriginSql::getInstance();
+        
+        $res = $sql->select('peer','hostname',0,array("blacklisted<".time()),'RAND()',10);
+        if ($res) {
+            return array('result' => $res, 'error'=>'');
+        }else{
+            return array('result' => '', 'error'=>'fail');
+        }
+
+
     }
     public function listbanned($mode='cli'){
     // Array
