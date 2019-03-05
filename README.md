@@ -1,3 +1,33 @@
+## Info
+
+Name:Orignchain
+
+Symbol:Orc
+
+Blocktime: ~ 4 minutes
+
+Fee: 0.5%
+
+Theoretical maximum:110,800,001
+
+## Need
+	
+	php >= 7.2
+
+	argon2
+
+	openssl
+
+	gmp
+
+	PDO
+
+	bcmath
+
+	mysql
+
+	nginx or apache
+
 ## Install for Linux (Ubuntu 16.04)
 
 *For more information, please refer to:INSTALL_README.md
