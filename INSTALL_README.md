@@ -1,80 +1,61 @@
 ## Git for ubuntu16.04
 
-apt-get update && apt-get install vim screen git -y
-
-screen -S orcnode
-
-mkdir /var/www
-
-cd /var/www
-
-git clone https://github.com/originchainio/test.git originnode
+       apt-get update && apt-get install vim screen git -y
+       screen -S orcnode
+       mkdir /var/www
+       cd /var/www
+       git clone https://github.com/originchainio/test.git originnode
 
 ## Fast Installation Environment
 
-cd /var/www/originnode
-
-chmod +x install_ubuntu1604.sh
-
-./install_ubuntu1604.sh
+       cd /var/www/originnode
+       chmod +x install_ubuntu1604.sh
+       ./install_ubuntu1604.sh
 
 ## restart OS
-restart
+       restart
 
 ## Import data structure
 
-//Enter the node directory
+*Enter the node directory
+       cd /var/www/originnode
 
-cd /var/www/originnode
+*Executive order,replace YourMysqlPass and DatabaseName
+       mysql -uroot -pYourMysqlPass
+       CREATE DATABASE DatabaseName;
+       use DatabaseName;
+       source /var/www/originnode/sql.sql;
+       quit
 
-//Executive order,replace YourMysqlPass and DatabaseName
-
-mysql -uroot -pYourMysqlPass
-
-CREATE DATABASE DatabaseName;
-
-use DatabaseName;
-
-source /var/www/originnode/sql.sql;
-
-quit
-
-//Delete SQL files
-
-rm /var/www/originnode/sql.sql
+*Delete SQL files
+       rm /var/www/originnode/sql.sql
 
 ## modify
 
-//Modify server_name to your domain name
+*Modify server_name to your domain name
+       vim /etc/nginx/sites-enabled/originnode
 
-vim /etc/nginx/sites-enabled/originnode
+*Restart nginx
+       service nginx reload
 
-//Restart nginx
-
-service nginx reload
-
-//Modify node configuration
-
-Route: /var/www/originnode
+*Modify node configuration
+       Route: /var/www/originnode/config
 
 
 ## If you don't use domain names, use IP as a node
 
-//del originnode file:
+*del originnode file:
+       rm /etc/nginx/sites-enabled/originnode
 
-rm /etc/nginx/sites-enabled/originnode
+*edit nginx default file:
+       vim /etc/nginx/sites-enabled/default
 
-//edit nginx default file:
+*Modify server_name to your ip
 
-vim /etc/nginx/sites-enabled/default
+*And turn on PHP Be similar to:
 
-//Modify server_name to your ip
 
-//And turn on PHP Be similar to:
-
-#######################################################
-
-	server_name your_ip;
+       server_name your_ip;
 
        root /var/www/originnode;
 
@@ -96,7 +77,6 @@ vim /etc/nginx/sites-enabled/default
 
        }
 
-#######################################################
+## Everything is ready, run once sync.php
 
-
-
+       php sync.php
