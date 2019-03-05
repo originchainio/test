@@ -78,4 +78,4 @@
 	chmod 777 log
 	chmod 777 cache
 
-*"install_ubuntu1604.sh" Permission issues have been addressed
+*"install_ubuntu1604.sh" Permissions have been processed
