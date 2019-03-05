@@ -29,7 +29,9 @@
 ## Masternode
 
 *Register a new account
+
 *Activate the account.Make a roll-in and roll-out automatic activation
+
 *Modify /var/www/originnode/config/config.php
 
 	'local_node'=>false,
@@ -37,6 +39,7 @@
 	'masternode_public_key'=>your publickey,
 
 *Deposit in 10000 coins to your account
+
 *activation(Command Line Running)
 
 	cd /var/www/originnode
