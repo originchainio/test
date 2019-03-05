@@ -36,7 +36,7 @@
 
 	'local_node'=>false,
 	'masternode'=>true,
-	'masternode_public_key'=>your publickey,
+	'masternode_public_key'=>'your publickey',
 
 *Deposit in 10000 coins to your account
 
@@ -53,3 +53,29 @@
 		[error] =>
 	)
 
+## Default directory
+
+*node: /var/www/originnode
+
+*php: /usr/local/php
+
+*php-ini: /etc/php/cgi/php.ini
+
+*Nginx: /etc/nginx/
+
+*Nginx config: /etc/nginx/sites-enabled/
+
+## Directory permission settings
+
+*node: 0755
+
+*cache and log 777
+
+	cd /var/www/
+	chown -R originnode:website /var/www/originnode
+	chmod -R 0755 /var/www/originnode
+	cd /var/www/originnode
+	chmod 777 log
+	chmod 777 cache
+
+*"install_ubuntu1604.sh" Permission issues have been addressed
