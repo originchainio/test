@@ -1,6 +1,6 @@
 ## Info
 
-Name:Orignchain
+Name:Originchain
 
 Symbol:Orc
 
